@@ -1,4 +1,9 @@
-import { SafeAreaView, ScrollView, View, Text, StyleSheet } from "react-native";
+import { Text, StyleSheet } from "react-native";
+
+import { AppScreen } from "@/components/AppScreen";
+import { Card } from "@/components/Card";
+import { PageHeader } from "@/components/PageHeader";
+import { colors } from "@/constants/theme";
 
 const settings = [
   {
@@ -27,88 +32,50 @@ const settings = [
   },
 ];
 
+type SettingCardProps = {
+  title: string;
+  value: string;
+};
+
+function SettingCard({ title, value }: SettingCardProps) {
+  return (
+    <Card>
+      <Text style={styles.settingTitle}>{title}</Text>
+      <Text style={styles.settingValue}>{value}</Text>
+    </Card>
+  );
+}
+
 export default function SettingsScreen() {
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <ScrollView contentContainerStyle={styles.screen}>
+    <AppScreen>
+      <PageHeader
+        label="SETTINGS"
+        title="Reminder preferences."
+        subtitle="Control how the app handles travel, arrival, departure, and repeated reminders."
+      />
 
-        <Text style={styles.appName}>SETTINGS</Text>
-
-        <Text style={styles.headline}>Reminder preferences.</Text>
-
-        <Text style={styles.subtitle}>
-          Control how the app handles travel, arrival, departure, and repeated reminders.
-        </Text>
-
-        <View style={styles.section}>
-          {settings.map((setting) => (
-            <View key={setting.title} style={styles.settingCard}>
-              <Text style={styles.settingTitle}>{setting.title}</Text>
-              <Text style={styles.settingValue}>{setting.value}</Text>
-            </View>
-          ))}
-        </View>
-
-      </ScrollView>
-    </SafeAreaView>
+      {settings.map((setting) => (
+        <SettingCard
+          key={setting.title}
+          title={setting.title}
+          value={setting.value}
+        />
+      ))}
+    </AppScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: "#F7F3EA",
-  },
-
-  screen: {
-    padding: 22,
-    paddingBottom: 120,
-  },
-
-  appName: {
-    color: "#2563EB",
-    fontSize: 13,
-    fontWeight: "900",
-    letterSpacing: 1.4,
-    marginTop: 18,
-    marginBottom: 18,
-  },
-
-  headline: {
-    color: "#172033",
-    fontSize: 34,
-    fontWeight: "900",
-    lineHeight: 40,
-    marginBottom: 12,
-  },
-
-  subtitle: {
-    color: "#657084",
-    fontSize: 16,
-    lineHeight: 24,
-    marginBottom: 24,
-  },
-
-  section: {
-    marginBottom: 28,
-  },
-
-  settingCard: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 22,
-    padding: 18,
-    marginBottom: 12,
-  },
-
   settingTitle: {
-    color: "#172033",
+    color: colors.text,
     fontSize: 16,
     fontWeight: "900",
     marginBottom: 6,
   },
 
   settingValue: {
-    color: "#64748B",
+    color: colors.softText,
     fontSize: 14,
     lineHeight: 20,
   },
