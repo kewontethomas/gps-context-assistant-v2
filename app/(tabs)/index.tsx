@@ -1,6 +1,12 @@
-import { SafeAreaView, ScrollView, View, Text, StyleSheet, Pressable } from "react-native";
+import { View, Text, StyleSheet } from "react-native";
 import * as Location from "expo-location";
 import { useState } from "react";
+
+import { AppScreen } from "@/components/AppScreen";
+import { Card } from "@/components/Card";
+import { PageHeader } from "@/components/PageHeader";
+import { PrimaryButton } from "@/components/PrimaryButton";
+import { colors, typography } from "@/constants/theme";
 
 export default function HomeScreen() {
   const [locationStatus, setLocationStatus] = useState(
@@ -28,140 +34,77 @@ export default function HomeScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <ScrollView contentContainerStyle={styles.screen}>
+    <AppScreen>
+      <PageHeader
+        label="GPS CONTEXT ASSISTANT"
+        title="Plan tasks by place."
+        subtitle="Create reminders for Home, Work, School, stores, appointments, and temporary stops before you get there."
+      />
 
-        <View style={styles.header}>
-          <Text style={styles.appName}>GPS CONTEXT ASSISTANT</Text>
+      <Card>
+        <Text style={styles.cardTitle}>What do you want to set up?</Text>
 
-          <Text style={styles.headline}>
-            Plan tasks by place.
-          </Text>
+        <View style={styles.buttonRow}>
+          <View style={styles.buttonHalf}>
+            <PrimaryButton title="Add Task" />
+          </View>
 
-          <Text style={styles.subtitle}>
-            Create reminders for Home, Work, School, stores, appointments, and temporary stops before you get there.
-          </Text>
-        </View>
-
-        <View style={styles.actionCard}>
-          <Text style={styles.cardTitle}>What do you want to set up?</Text>
-
-          <View style={styles.buttonRow}>
-            <Pressable style={styles.primaryButton}>
-              <Text style={styles.primaryButtonText}>Add Task</Text>
-            </Pressable>
-
-            <Pressable style={styles.secondaryButton}>
-              <Text style={styles.secondaryButtonText}>Add Place</Text>
-            </Pressable>
+          <View style={styles.buttonHalf}>
+            <PrimaryButton title="Add Place" variant="secondary" />
           </View>
         </View>
+      </Card>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Today’s Place Tasks</Text>
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Today’s Place Tasks</Text>
 
-          <View style={styles.emptyCard}>
-            <Text style={styles.emptyTitle}>No tasks planned yet</Text>
+        <Card variant="yellow">
+          <Text style={styles.emptyTitle}>No tasks planned yet</Text>
 
-            <Text style={styles.emptyText}>
-              Add a task to a saved place like Work or Home, or create a temporary place for an errand.
-            </Text>
-          </View>
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>How reminders will work</Text>
-
-          <View style={styles.reminderCard}>
-            <Text style={styles.reminderItem}>• Before it’s time to leave</Text>
-            <Text style={styles.reminderItem}>• When you arrive</Text>
-            <Text style={styles.reminderItem}>• While you’re there if unfinished</Text>
-            <Text style={styles.reminderItem}>• When you leave if still incomplete</Text>
-          </View>
-        </View>
-
-        <View style={styles.gpsCard}>
-          <Text style={styles.gpsTitle}>GPS Test</Text>
-
-          <Text style={styles.gpsText}>
-            {locationStatus}
+          <Text style={styles.emptyText}>
+            Add a task to a saved place like Work or Home, or create a temporary place for an errand.
           </Text>
+        </Card>
+      </View>
 
-          {latitude !== "" && (
-            <View style={styles.coordsBox}>
-              <Text style={styles.coords}>Latitude: {latitude}</Text>
-              <Text style={styles.coords}>Longitude: {longitude}</Text>
-            </View>
-          )}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>How reminders will work</Text>
 
-          <Pressable
-            style={styles.gpsButton}
-            onPress={handleLocationPress}
-          >
-            <Text style={styles.gpsButtonText}>
-              Test Current Location
-            </Text>
-          </Pressable>
-        </View>
+        <Card>
+          <Text style={styles.reminderItem}>• Before it’s time to leave</Text>
+          <Text style={styles.reminderItem}>• When you arrive</Text>
+          <Text style={styles.reminderItem}>• While you’re there if unfinished</Text>
+          <Text style={styles.reminderItem}>• When you leave if still incomplete</Text>
+        </Card>
+      </View>
 
-      </ScrollView>
-    </SafeAreaView>
+      <Card variant="blue">
+        <Text style={styles.gpsTitle}>GPS Test</Text>
+
+        <Text style={styles.gpsText}>
+          {locationStatus}
+        </Text>
+
+        {latitude !== "" && (
+          <View style={styles.coordsBox}>
+            <Text style={styles.coords}>Latitude: {latitude}</Text>
+            <Text style={styles.coords}>Longitude: {longitude}</Text>
+          </View>
+        )}
+
+        <PrimaryButton
+          title="Test Current Location"
+          variant="secondary"
+          onPress={handleLocationPress}
+        />
+      </Card>
+    </AppScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: "#F7F3EA",
-  },
-
-  screen: {
-    padding: 22,
-    paddingBottom: 120,
-  },
-
-  header: {
-    marginTop: 18,
-    marginBottom: 22,
-  },
-
-  appName: {
-    color: "#2563EB",
-    fontSize: 13,
-    fontWeight: "900",
-    letterSpacing: 1.4,
-    marginBottom: 18,
-  },
-
-  headline: {
-    color: "#172033",
-    fontSize: 36,
-    fontWeight: "900",
-    lineHeight: 42,
-    marginBottom: 12,
-  },
-
-  subtitle: {
-    color: "#657084",
-    fontSize: 16,
-    lineHeight: 24,
-  },
-
-  actionCard: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 28,
-    padding: 22,
-    marginBottom: 24,
-
-    shadowColor: "#000",
-    shadowOpacity: 0.07,
-    shadowRadius: 14,
-    shadowOffset: { width: 0, height: 8 },
-    elevation: 3,
-  },
-
   cardTitle: {
-    color: "#172033",
+    color: colors.text,
     fontSize: 18,
     fontWeight: "900",
     marginBottom: 16,
@@ -172,32 +115,8 @@ const styles = StyleSheet.create({
     gap: 12,
   },
 
-  primaryButton: {
+  buttonHalf: {
     flex: 1,
-    backgroundColor: "#2563EB",
-    borderRadius: 18,
-    paddingVertical: 16,
-    alignItems: "center",
-  },
-
-  primaryButtonText: {
-    color: "#FFFFFF",
-    fontSize: 16,
-    fontWeight: "800",
-  },
-
-  secondaryButton: {
-    flex: 1,
-    backgroundColor: "#EAF3FF",
-    borderRadius: 18,
-    paddingVertical: 16,
-    alignItems: "center",
-  },
-
-  secondaryButtonText: {
-    color: "#2563EB",
-    fontSize: 16,
-    fontWeight: "800",
   },
 
   section: {
@@ -205,16 +124,9 @@ const styles = StyleSheet.create({
   },
 
   sectionTitle: {
-    color: "#172033",
-    fontSize: 20,
-    fontWeight: "900",
+    ...typography.sectionTitle,
+    color: colors.text,
     marginBottom: 12,
-  },
-
-  emptyCard: {
-    backgroundColor: "#FFF7DE",
-    borderRadius: 24,
-    padding: 20,
   },
 
   emptyTitle: {
@@ -230,26 +142,14 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
 
-  reminderCard: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 24,
-    padding: 20,
-  },
-
   reminderItem: {
     color: "#334155",
     fontSize: 15,
     lineHeight: 26,
   },
 
-  gpsCard: {
-    backgroundColor: "#EAF3FF",
-    borderRadius: 24,
-    padding: 20,
-  },
-
   gpsTitle: {
-    color: "#172033",
+    color: colors.text,
     fontSize: 16,
     fontWeight: "900",
     marginBottom: 8,
@@ -263,7 +163,7 @@ const styles = StyleSheet.create({
   },
 
   coordsBox: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: colors.surface,
     borderRadius: 16,
     padding: 14,
     marginBottom: 14,
@@ -273,18 +173,5 @@ const styles = StyleSheet.create({
     color: "#334155",
     fontSize: 14,
     lineHeight: 22,
-  },
-
-  gpsButton: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 16,
-    paddingVertical: 14,
-    alignItems: "center",
-  },
-
-  gpsButtonText: {
-    color: "#2563EB",
-    fontSize: 15,
-    fontWeight: "800",
   },
 });
