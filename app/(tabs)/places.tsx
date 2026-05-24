@@ -5,7 +5,10 @@ import { Card } from "@/components/Card";
 import { PageHeader } from "@/components/PageHeader";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { colors, spacing, typography } from "@/constants/theme";
-import { savedPlaces } from "@/data/places";
+import { useCallback, useState } from "react";
+import { useFocusEffect } from "expo-router";
+import { getSavedPlaces } from "@/storage/placeStorage";
+import { SavedPlace } from "@/types/place";
 import { router } from "expo-router";
 
 type PlaceCardProps = {
@@ -34,8 +37,21 @@ function PlaceCard({
 }
 
 export default function PlacesScreen() {
-  const permanentPlaces = savedPlaces.filter((place) => place.type === "permanent");
-  const temporaryPlaces = savedPlaces.filter((place) => place.type === "temporary");
+  const [places, setPlaces] = useState<SavedPlace[]>([]);
+
+  useFocusEffect(
+    useCallback(() => {
+      async function loadPlaces() {
+        const savedPlaces = await getSavedPlaces();
+        setPlaces(savedPlaces);
+      }
+
+      loadPlaces();
+    }, [])
+  );
+
+  const permanentPlaces = places.filter((place) => place.type === "permanent");
+  const temporaryPlaces = places.filter((place) => place.type === "temporary");
 
   return (
     <AppScreen>
