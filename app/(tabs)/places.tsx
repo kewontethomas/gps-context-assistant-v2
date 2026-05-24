@@ -1,4 +1,10 @@
-import { SafeAreaView, ScrollView, View, Text, StyleSheet, Pressable } from "react-native";
+import { View, Text, StyleSheet } from "react-native";
+
+import { AppScreen } from "@/components/AppScreen";
+import { Card } from "@/components/Card";
+import { PageHeader } from "@/components/PageHeader";
+import { PrimaryButton } from "@/components/PrimaryButton";
+import { colors, spacing, typography } from "@/constants/theme";
 
 const permanentPlaces = [
   {
@@ -26,105 +32,77 @@ const temporaryPlaces = [
   },
 ];
 
+type PlaceCardProps = {
+  icon: string;
+  name: string;
+  description: string;
+  isTemporary?: boolean;
+};
+
+function PlaceCard({
+  icon,
+  name,
+  description,
+  isTemporary = false,
+}: PlaceCardProps) {
+  return (
+    <Card variant={isTemporary ? "yellow" : "default"} style={styles.placeCard}>
+      <Text style={styles.placeIcon}>{icon}</Text>
+
+      <View style={styles.placeTextArea}>
+        <Text style={styles.placeName}>{name}</Text>
+        <Text style={styles.placeDescription}>{description}</Text>
+      </View>
+    </Card>
+  );
+}
+
 export default function PlacesScreen() {
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <ScrollView contentContainerStyle={styles.screen}>
+    <AppScreen>
+      <PageHeader
+        label="PLACES"
+        title="Your saved places."
+        subtitle="Permanent places stay saved. Temporary places are removed or archived after their tasks are complete."
+      />
 
-        <Text style={styles.appName}>PLACES</Text>
+      <View style={styles.buttonWrapper}>
+        <PrimaryButton title="Add Place" />
+      </View>
 
-        <Text style={styles.headline}>Your saved places.</Text>
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Permanent Places</Text>
 
-        <Text style={styles.subtitle}>
-          Permanent places stay saved. Temporary places are removed or archived after their tasks are complete.
-        </Text>
+        {permanentPlaces.map((place) => (
+          <PlaceCard
+            key={place.name}
+            icon={place.icon}
+            name={place.name}
+            description={place.description}
+          />
+        ))}
+      </View>
 
-        <Pressable style={styles.primaryButton}>
-          <Text style={styles.primaryButtonText}>Add Place</Text>
-        </Pressable>
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Temporary Places</Text>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Permanent Places</Text>
-
-          {permanentPlaces.map((place) => (
-            <View key={place.name} style={styles.placeCard}>
-              <Text style={styles.placeIcon}>{place.icon}</Text>
-
-              <View style={styles.placeTextArea}>
-                <Text style={styles.placeName}>{place.name}</Text>
-                <Text style={styles.placeDescription}>{place.description}</Text>
-              </View>
-            </View>
-          ))}
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Temporary Places</Text>
-
-          {temporaryPlaces.map((place) => (
-            <View key={place.name} style={styles.placeCardTemporary}>
-              <Text style={styles.placeIcon}>{place.icon}</Text>
-
-              <View style={styles.placeTextArea}>
-                <Text style={styles.placeName}>{place.name}</Text>
-                <Text style={styles.placeDescription}>{place.description}</Text>
-              </View>
-            </View>
-          ))}
-        </View>
-
-      </ScrollView>
-    </SafeAreaView>
+        {temporaryPlaces.map((place) => (
+          <PlaceCard
+            key={place.name}
+            icon={place.icon}
+            name={place.name}
+            description={place.description}
+            isTemporary
+          />
+        ))}
+      </View>
+    </AppScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: "#F7F3EA",
-  },
-
-  screen: {
-    padding: 22,
-    paddingBottom: 120,
-  },
-
-  appName: {
-    color: "#2563EB",
-    fontSize: 13,
-    fontWeight: "900",
-    letterSpacing: 1.4,
-    marginTop: 18,
-    marginBottom: 18,
-  },
-
-  headline: {
-    color: "#172033",
-    fontSize: 34,
-    fontWeight: "900",
-    lineHeight: 40,
-    marginBottom: 12,
-  },
-
-  subtitle: {
-    color: "#657084",
-    fontSize: 16,
-    lineHeight: 24,
-    marginBottom: 20,
-  },
-
-  primaryButton: {
-    backgroundColor: "#2563EB",
-    borderRadius: 18,
-    paddingVertical: 16,
-    alignItems: "center",
+  buttonWrapper: {
     marginBottom: 28,
-  },
-
-  primaryButtonText: {
-    color: "#FFFFFF",
-    fontSize: 16,
-    fontWeight: "800",
   },
 
   section: {
@@ -132,34 +110,15 @@ const styles = StyleSheet.create({
   },
 
   sectionTitle: {
-    color: "#172033",
-    fontSize: 20,
-    fontWeight: "900",
+    ...typography.sectionTitle,
+    color: colors.text,
     marginBottom: 12,
   },
 
   placeCard: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 24,
-    padding: 18,
-    marginBottom: 12,
     flexDirection: "row",
     alignItems: "center",
-
-    shadowColor: "#000",
-    shadowOpacity: 0.06,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 2,
-  },
-
-  placeCardTemporary: {
-    backgroundColor: "#FFF7DE",
-    borderRadius: 24,
     padding: 18,
-    marginBottom: 12,
-    flexDirection: "row",
-    alignItems: "center",
   },
 
   placeIcon: {
@@ -172,14 +131,14 @@ const styles = StyleSheet.create({
   },
 
   placeName: {
-    color: "#172033",
+    color: colors.text,
     fontSize: 17,
     fontWeight: "900",
     marginBottom: 4,
   },
 
   placeDescription: {
-    color: "#64748B",
+    color: colors.softText,
     fontSize: 14,
     lineHeight: 20,
   },
