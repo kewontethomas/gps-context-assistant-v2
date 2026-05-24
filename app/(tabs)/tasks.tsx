@@ -1,4 +1,10 @@
-import { SafeAreaView, ScrollView, View, Text, StyleSheet, Pressable } from "react-native";
+import { View, Text, StyleSheet } from "react-native";
+
+import { AppScreen } from "@/components/AppScreen";
+import { Card } from "@/components/Card";
+import { PageHeader } from "@/components/PageHeader";
+import { PrimaryButton } from "@/components/PrimaryButton";
+import { colors, typography } from "@/constants/theme";
 
 const sampleTasks = [
   {
@@ -17,92 +23,63 @@ const sampleTasks = [
   },
 ];
 
+type TaskCardProps = {
+  title: string;
+  place: string;
+  time: string;
+  travel: string;
+  status: string;
+};
+
+function TaskCard({ title, place, time, travel, status }: TaskCardProps) {
+  return (
+    <Card>
+      <View style={styles.taskHeader}>
+        <Text style={styles.taskTitle}>{title}</Text>
+        <Text style={styles.statusBadge}>{status}</Text>
+      </View>
+
+      <Text style={styles.taskMeta}>Place: {place}</Text>
+      <Text style={styles.taskMeta}>When: {time}</Text>
+      <Text style={styles.taskMeta}>Travel: {travel}</Text>
+    </Card>
+  );
+}
+
 export default function TasksScreen() {
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <ScrollView contentContainerStyle={styles.screen}>
+    <AppScreen>
+      <PageHeader
+        label="TASKS"
+        title="Tasks tied to places."
+        subtitle="Plan what needs to happen, where it should happen, and how aggressively you want to be reminded."
+      />
 
-        <Text style={styles.appName}>TASKS</Text>
+      <View style={styles.buttonWrapper}>
+        <PrimaryButton title="Add Task" />
+      </View>
 
-        <Text style={styles.headline}>Tasks tied to places.</Text>
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Active Tasks</Text>
 
-        <Text style={styles.subtitle}>
-          Plan what needs to happen, where it should happen, and how aggressively you want to be reminded.
-        </Text>
-
-        <Pressable style={styles.primaryButton}>
-          <Text style={styles.primaryButtonText}>Add Task</Text>
-        </Pressable>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Active Tasks</Text>
-
-          {sampleTasks.map((task) => (
-            <View key={task.title} style={styles.taskCard}>
-              <View style={styles.taskHeader}>
-                <Text style={styles.taskTitle}>{task.title}</Text>
-                <Text style={styles.statusBadge}>{task.status}</Text>
-              </View>
-
-              <Text style={styles.taskMeta}>Place: {task.place}</Text>
-              <Text style={styles.taskMeta}>When: {task.time}</Text>
-              <Text style={styles.taskMeta}>Travel: {task.travel}</Text>
-            </View>
-          ))}
-        </View>
-
-      </ScrollView>
-    </SafeAreaView>
+        {sampleTasks.map((task) => (
+          <TaskCard
+            key={task.title}
+            title={task.title}
+            place={task.place}
+            time={task.time}
+            travel={task.travel}
+            status={task.status}
+          />
+        ))}
+      </View>
+    </AppScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: "#F7F3EA",
-  },
-
-  screen: {
-    padding: 22,
-    paddingBottom: 120,
-  },
-
-  appName: {
-    color: "#2563EB",
-    fontSize: 13,
-    fontWeight: "900",
-    letterSpacing: 1.4,
-    marginTop: 18,
-    marginBottom: 18,
-  },
-
-  headline: {
-    color: "#172033",
-    fontSize: 34,
-    fontWeight: "900",
-    lineHeight: 40,
-    marginBottom: 12,
-  },
-
-  subtitle: {
-    color: "#657084",
-    fontSize: 16,
-    lineHeight: 24,
-    marginBottom: 20,
-  },
-
-  primaryButton: {
-    backgroundColor: "#2563EB",
-    borderRadius: 18,
-    paddingVertical: 16,
-    alignItems: "center",
+  buttonWrapper: {
     marginBottom: 28,
-  },
-
-  primaryButtonText: {
-    color: "#FFFFFF",
-    fontSize: 16,
-    fontWeight: "800",
   },
 
   section: {
@@ -110,23 +87,9 @@ const styles = StyleSheet.create({
   },
 
   sectionTitle: {
-    color: "#172033",
-    fontSize: 20,
-    fontWeight: "900",
+    ...typography.sectionTitle,
+    color: colors.text,
     marginBottom: 12,
-  },
-
-  taskCard: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 24,
-    padding: 20,
-    marginBottom: 14,
-
-    shadowColor: "#000",
-    shadowOpacity: 0.06,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 2,
   },
 
   taskHeader: {
@@ -139,14 +102,14 @@ const styles = StyleSheet.create({
 
   taskTitle: {
     flex: 1,
-    color: "#172033",
+    color: colors.text,
     fontSize: 18,
     fontWeight: "900",
   },
 
   statusBadge: {
-    color: "#2563EB",
-    backgroundColor: "#EAF3FF",
+    color: colors.primary,
+    backgroundColor: colors.primarySoft,
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 999,
@@ -155,7 +118,7 @@ const styles = StyleSheet.create({
   },
 
   taskMeta: {
-    color: "#64748B",
+    color: colors.softText,
     fontSize: 14,
     lineHeight: 22,
   },
