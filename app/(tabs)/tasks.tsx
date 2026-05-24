@@ -1,4 +1,6 @@
 import { View, Text, StyleSheet } from "react-native";
+import { useCallback, useState } from "react";
+import { router, useFocusEffect } from "expo-router";
 
 import { AppScreen } from "@/components/AppScreen";
 import { Card } from "@/components/Card";
@@ -6,20 +8,8 @@ import { PageHeader } from "@/components/PageHeader";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { colors, typography } from "@/constants/theme";
 import { savedPlaces } from "@/data/places";
-import { locationTasks } from "@/data/tasks";
-import { router } from "expo-router";
-
-const activeTasks = locationTasks.filter((task) => task.status === "active");
-
-function getPlaceName(placeId: string) {
-  const place = savedPlaces.find((savedPlace) => savedPlace.id === placeId);
-
-  if (!place) {
-    return "Unknown place";
-  }
-
-  return place.name;
-}
+import { getSavedTasks } from "@/storage/taskStorage";
+import { LocationTask } from "@/types/task";
 
 type TaskCardProps = {
   title: string;
@@ -45,6 +35,31 @@ function TaskCard({ title, place, time, travel, status }: TaskCardProps) {
 }
 
 export default function TasksScreen() {
+  const [tasks, setTasks] = useState<LocationTask[]>([]);
+
+  useFocusEffect(
+    useCallback(() => {
+      async function loadTasks() {
+        const savedTasks = await getSavedTasks();
+        setTasks(savedTasks);
+      }
+
+      loadTasks();
+    }, [])
+  );
+
+  const activeTasks = tasks.filter((task) => task.status === "active");
+
+  function getPlaceName(placeId: string) {
+    const place = savedPlaces.find((savedPlace) => savedPlace.id === placeId);
+
+    if (!place) {
+      return "Unknown place";
+    }
+
+    return place.name;
+  }
+
   return (
     <AppScreen>
       <PageHeader
@@ -54,22 +69,25 @@ export default function TasksScreen() {
       />
 
       <View style={styles.buttonWrapper}>
-        <PrimaryButton title="Add Task" onPress={() => router.push("/add-task")} />
+        <PrimaryButton
+          title="Add Task"
+          onPress={() => router.push("/add-task")}
+        />
       </View>
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Active Tasks</Text>
 
         {activeTasks.map((task) => (
-            <TaskCard
-                key={task.id}
-                title={task.title}
-                place={getPlaceName(task.placeId)}
-                time={task.dueTime ?? task.dueDate ?? "No time set"}
-                travel={task.travelMode}
-                status={task.status}
-            />
-            ))}
+          <TaskCard
+            key={task.id}
+            title={task.title}
+            place={getPlaceName(task.placeId)}
+            time={task.dueTime ?? task.dueDate ?? "No time set"}
+            travel={task.travelMode}
+            status={task.status}
+          />
+        ))}
       </View>
     </AppScreen>
   );
