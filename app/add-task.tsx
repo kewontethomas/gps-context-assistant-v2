@@ -57,35 +57,35 @@ function formatLabel(value: string) {
 }
 
 export default function AddTaskScreen() {
-  const [places, setPlaces] = useState<SavedPlace[]>([]);
+    const [places, setPlaces] = useState<SavedPlace[]>([]);
 
-  const [taskTitle, setTaskTitle] = useState("");
-  const [notes, setNotes] = useState("");
-  const [selectedPlaceId, setSelectedPlaceId] = useState("");
-  const [dueDate, setDueDate] = useState("");
-  const [dueTime, setDueTime] = useState("");
-  const [recurrence, setRecurrence] = useState<TaskRecurrence>("none");
+    const [taskTitle, setTaskTitle] = useState("");
+    const [notes, setNotes] = useState("");
+    const [selectedPlaceId, setSelectedPlaceId] = useState("");
+    const [dueDate, setDueDate] = useState("");
+    const [dueTime, setDueTime] = useState("");
+    const [recurrence, setRecurrence] = useState<TaskRecurrence>("none");
 
-  const [arrivalReminder, setArrivalReminder] = useState(true);
-  const [departureReminder, setDepartureReminder] = useState(true);
-  const [repeatReminder, setRepeatReminder] = useState(false);
-  const [dueReminder, setDueReminder] = useState(false);
+    const [arrivalReminder, setArrivalReminder] = useState(true);
+    const [departureReminder, setDepartureReminder] = useState(true);
+    const [repeatReminder, setRepeatReminder] = useState(false);
+    const [dueReminder, setDueReminder] = useState(false);
 
-  useFocusEffect(
-    useCallback(() => {
-      async function loadPlaces() {
-        const savedPlaces = await getSavedPlaces();
+    useFocusEffect(
+        useCallback(() => {
+            async function loadPlaces() {
+                const savedPlaces = await getSavedPlaces();
 
-        setPlaces(savedPlaces);
+                setPlaces(savedPlaces);
 
-        if (!selectedPlaceId && savedPlaces.length > 0) {
-          setSelectedPlaceId(savedPlaces[0].id);
-        }
-      }
+                if (!selectedPlaceId && savedPlaces.length > 0) {
+                    setSelectedPlaceId(savedPlaces[0].id);
+                }
+            }
 
-      loadPlaces();
-    }, [selectedPlaceId])
-  );
+            loadPlaces();
+        }, [selectedPlaceId])
+    );
 
     function isReminderSelected(key: string) {
         if (key === "arrival") return arrivalReminder;
