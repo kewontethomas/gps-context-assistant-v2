@@ -7,6 +7,7 @@ import { Card } from "@/components/Card";
 import { PageHeader } from "@/components/PageHeader";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { colors, typography } from "@/constants/theme";
+import { router } from "expo-router";
 
 export default function HomeScreen() {
   const [locationStatus, setLocationStatus] = useState(
@@ -46,11 +47,15 @@ export default function HomeScreen() {
 
         <View style={styles.buttonRow}>
           <View style={styles.buttonHalf}>
-            <PrimaryButton title="Add Task" />
+            <PrimaryButton title="Add Task" onPress={() => router.push("/add-task")} />
           </View>
 
           <View style={styles.buttonHalf}>
-            <PrimaryButton title="Add Place" variant="secondary" />
+            <PrimaryButton
+              title="Add Place"
+              variant="secondary"
+              onPress={() => router.push("/add-place")}
+            />
           </View>
         </View>
       </Card>

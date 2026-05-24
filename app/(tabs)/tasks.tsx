@@ -7,6 +7,7 @@ import { PrimaryButton } from "@/components/PrimaryButton";
 import { colors, typography } from "@/constants/theme";
 import { savedPlaces } from "@/data/places";
 import { locationTasks } from "@/data/tasks";
+import { router } from "expo-router";
 
 const activeTasks = locationTasks.filter((task) => task.status === "active");
 
@@ -53,7 +54,7 @@ export default function TasksScreen() {
       />
 
       <View style={styles.buttonWrapper}>
-        <PrimaryButton title="Add Task" />
+        <PrimaryButton title="Add Task" onPress={() => router.push("/add-task")} />
       </View>
 
       <View style={styles.section}>
