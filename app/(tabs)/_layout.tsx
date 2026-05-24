@@ -8,16 +8,28 @@ export default function TabLayout() {
         headerShown: false,
         tabBarActiveTintColor: "#2563EB",
         tabBarInactiveTintColor: "#94A3B8",
+
         tabBarStyle: {
           backgroundColor: "#FFFFFF",
           borderTopColor: "#E5E7EB",
-          height: 84,
-          paddingTop: 8,
-          paddingBottom: 18,
+          height: 106,
+          paddingTop: 10,
+          paddingBottom: 36,
         },
+
+        tabBarItemStyle: {
+          height: 68,
+          paddingVertical: 8,
+        },
+
+        tabBarIconStyle: {
+          marginTop: 2,
+        },
+
         tabBarLabelStyle: {
           fontSize: 12,
           fontWeight: "700",
+          marginTop: 2,
         },
       }}
     >
@@ -25,8 +37,12 @@ export default function TabLayout() {
         name="index"
         options={{
           title: "Home",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="home-outline" size={size} color={color} />
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons
+              name={focused ? "home" : "home-outline"}
+              size={26}
+              color={color}
+            />
           ),
         }}
       />
@@ -35,8 +51,12 @@ export default function TabLayout() {
         name="places"
         options={{
           title: "Places",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="location-outline" size={size} color={color} />
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons
+              name={focused ? "location" : "location-outline"}
+              size={26}
+              color={color}
+            />
           ),
         }}
       />
@@ -45,8 +65,12 @@ export default function TabLayout() {
         name="tasks"
         options={{
           title: "Tasks",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="checkbox-outline" size={size} color={color} />
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons
+              name={focused ? "checkbox" : "checkbox-outline"}
+              size={26}
+              color={color}
+            />
           ),
         }}
       />
@@ -55,8 +79,12 @@ export default function TabLayout() {
         name="settings"
         options={{
           title: "Settings",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="settings-outline" size={size} color={color} />
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons
+              name={focused ? "settings" : "settings-outline"}
+              size={26}
+              color={color}
+            />
           ),
         }}
       />
