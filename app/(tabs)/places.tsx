@@ -6,6 +6,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { colors, spacing, typography } from "@/constants/theme";
 import { savedPlaces } from "@/data/places";
+import { router } from "expo-router";
 
 type PlaceCardProps = {
   icon: string;
@@ -45,7 +46,7 @@ export default function PlacesScreen() {
       />
 
       <View style={styles.buttonWrapper}>
-        <PrimaryButton title="Add Place" />
+        <PrimaryButton title="Add Place" onPress={() => router.push("/add-place")} />
       </View>
 
       <View style={styles.section}>
