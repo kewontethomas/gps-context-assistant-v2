@@ -5,32 +5,7 @@ import { Card } from "@/components/Card";
 import { PageHeader } from "@/components/PageHeader";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { colors, spacing, typography } from "@/constants/theme";
-
-const permanentPlaces = [
-  {
-    name: "Home",
-    description: "Daily routines, chores, family tasks",
-    icon: "🏠",
-  },
-  {
-    name: "Work",
-    description: "Recurring work tasks, site reminders, deadlines",
-    icon: "💼",
-  },
-  {
-    name: "School",
-    description: "Assignments, classes, campus reminders",
-    icon: "🎓",
-  },
-];
-
-const temporaryPlaces = [
-  {
-    name: "Walmart Errand",
-    description: "Temporary place example — disappears after tasks are complete",
-    icon: "🛒",
-  },
-];
+import { savedPlaces } from "@/data/places";
 
 type PlaceCardProps = {
   icon: string;
@@ -58,6 +33,9 @@ function PlaceCard({
 }
 
 export default function PlacesScreen() {
+  const permanentPlaces = savedPlaces.filter((place) => place.type === "permanent");
+  const temporaryPlaces = savedPlaces.filter((place) => place.type === "temporary");
+
   return (
     <AppScreen>
       <PageHeader

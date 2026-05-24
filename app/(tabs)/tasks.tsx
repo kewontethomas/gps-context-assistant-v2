@@ -5,23 +5,20 @@ import { Card } from "@/components/Card";
 import { PageHeader } from "@/components/PageHeader";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { colors, typography } from "@/constants/theme";
+import { savedPlaces } from "@/data/places";
+import { locationTasks } from "@/data/tasks";
 
-const sampleTasks = [
-  {
-    title: "Check server room",
-    place: "Work",
-    time: "Today",
-    travel: "Walking while at work",
-    status: "Active",
-  },
-  {
-    title: "Take out trash",
-    place: "Home",
-    time: "Tonight",
-    travel: "No travel needed",
-    status: "Active",
-  },
-];
+const activeTasks = locationTasks.filter((task) => task.status === "active");
+
+function getPlaceName(placeId: string) {
+  const place = savedPlaces.find((savedPlace) => savedPlace.id === placeId);
+
+  if (!place) {
+    return "Unknown place";
+  }
+
+  return place.name;
+}
 
 type TaskCardProps = {
   title: string;
@@ -62,16 +59,16 @@ export default function TasksScreen() {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Active Tasks</Text>
 
-        {sampleTasks.map((task) => (
-          <TaskCard
-            key={task.title}
-            title={task.title}
-            place={task.place}
-            time={task.time}
-            travel={task.travel}
-            status={task.status}
-          />
-        ))}
+        {activeTasks.map((task) => (
+            <TaskCard
+                key={task.id}
+                title={task.title}
+                place={getPlaceName(task.placeId)}
+                time={task.dueTime ?? task.dueDate ?? "No time set"}
+                travel={task.travelMode}
+                status={task.status}
+            />
+            ))}
       </View>
     </AppScreen>
   );
