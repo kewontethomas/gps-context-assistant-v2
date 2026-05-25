@@ -75,28 +75,46 @@ export default function PlacesScreen() {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Permanent Places</Text>
 
-        {permanentPlaces.map((place) => (
-          <PlaceCard
-            key={place.name}
-            icon={place.icon}
-            name={place.name}
-            description={place.description}
-          />
-        ))}
+        {permanentPlaces.length === 0 ? (
+          <Card variant="yellow">
+            <Text style={styles.emptyTitle}>No permanent places yet</Text>
+            <Text style={styles.emptyText}>
+              Add places like Home, Work, School, or the Gym to create recurring location-based tasks.
+            </Text>
+          </Card>
+        ) : (
+          permanentPlaces.map((place) => (
+            <PlaceCard
+              key={place.id}
+              icon={place.icon}
+              name={place.name}
+              description={place.description}
+            />
+          ))
+        )}
       </View>
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Temporary Places</Text>
 
-        {temporaryPlaces.map((place) => (
-          <PlaceCard
-            key={place.name}
-            icon={place.icon}
-            name={place.name}
-            description={place.description}
-            isTemporary
-          />
-        ))}
+        {temporaryPlaces.length === 0 ? (
+          <Card variant="yellow">
+            <Text style={styles.emptyTitle}>No temporary places</Text>
+            <Text style={styles.emptyText}>
+              Temporary places appear when you add one-time errands, appointments, or stops.
+            </Text>
+          </Card>
+        ) : (
+          temporaryPlaces.map((place) => (
+            <PlaceCard
+              key={place.id}
+              icon={place.icon}
+              name={place.name}
+              description={place.description}
+              isTemporary
+            />
+          ))
+        )}
       </View>
     </AppScreen>
   );
@@ -144,4 +162,17 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 20,
   },
+
+  emptyTitle: {
+  color: "#4A3B14",
+  fontSize: 16,
+  fontWeight: "900",
+  marginBottom: 6,
+},
+
+emptyText: {
+  color: "#6B5E3D",
+  fontSize: 15,
+  lineHeight: 22,
+},
 });

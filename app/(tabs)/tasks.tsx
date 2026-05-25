@@ -202,21 +202,30 @@ export default function TasksScreen() {
             <View style={styles.section}>
                 <Text style={styles.sectionTitle}>Active Tasks</Text>
 
-                {activeTasks.map((task) => (
-                    <TaskCard
-                        key={task.id}
-                        task={task}
-                        place={getPlaceName(task.placeId)}
-                        time={
-                            task.dueDate && task.dueTime
-                                ? `${task.dueDate} • ${task.dueTime}`
-                                : task.dueDate ?? task.dueTime ?? "No time set"
-                        }
-                        onComplete={() => handleCompleteTask(task)}
-                        onLater={() => handleOpenLaterOptions(task)}
-                        onDelete={() => handleDeleteTask(task)}
-                    />
-                ))}
+                {activeTasks.length === 0 ? (
+                    <Card variant="yellow">
+                        <Text style={styles.emptyTitle}>No active tasks yet</Text>
+                        <Text style={styles.emptyText}>
+                            Add a task to a saved place so the app can remind you when it matters.
+                        </Text>
+                    </Card>
+                ) : (
+                    activeTasks.map((task) => (
+                        <TaskCard
+                            key={task.id}
+                            task={task}
+                            place={getPlaceName(task.placeId)}
+                            time={
+                                task.dueDate && task.dueTime
+                                    ? `${task.dueDate} • ${task.dueTime}`
+                                    : task.dueDate ?? task.dueTime ?? "No time set"
+                            }
+                            onComplete={() => handleCompleteTask(task)}
+                            onLater={() => handleOpenLaterOptions(task)}
+                            onDelete={() => handleDeleteTask(task)}
+                        />
+                    ))
+                )}
             </View>
 
             <View style={styles.section}>
@@ -450,4 +459,11 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: "800",
     },
+
+    emptyTitle: {
+    color: "#4A3B14",
+    fontSize: 16,
+    fontWeight: "900",
+    marginBottom: 6,
+},
 });
