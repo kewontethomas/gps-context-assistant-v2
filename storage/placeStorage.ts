@@ -26,3 +26,22 @@ export async function addSavedPlace(place: SavedPlace) {
 
   return updatedPlaces;
 }
+
+export async function archiveSavedPlace(placeId: string) {
+  const currentPlaces = await getSavedPlaces();
+
+  const updatedPlaces = currentPlaces.map((place) => {
+    if (place.id === placeId) {
+      return {
+        ...place,
+        archivedAt: new Date().toISOString(),
+      };
+    }
+
+    return place;
+  });
+
+  await savePlaces(updatedPlaces);
+
+  return updatedPlaces;
+}

@@ -7,7 +7,7 @@ import { Card } from "@/components/Card";
 import { PageHeader } from "@/components/PageHeader";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { colors, typography } from "@/constants/theme";
-import { getSavedPlaces } from "@/storage/placeStorage";
+import { archiveSavedPlace, getSavedPlaces } from "@/storage/placeStorage";
 import { deleteSavedTask, getSavedTasks, updateSavedTask } from "@/storage/taskStorage";
 import { SavedPlace } from "@/types/place";
 import { LocationTask } from "@/types/task";
@@ -118,12 +118,16 @@ export default function TasksScreen() {
         };
 
         const updatedTasks = await updateSavedTask(completedTask);
+
         setTasks(updatedTasks);
+        await cleanupTemporaryPlaceIfNeeded(task.placeId, updatedTasks);
     }
 
-    async function handleDeleteTask(taskId: string) {
-        const updatedTasks = await deleteSavedTask(taskId);
+    async function handleDeleteTask(task: LocationTask) {
+        const updatedTasks = await deleteSavedTask(task.id);
+
         setTasks(updatedTasks);
+        await cleanupTemporaryPlaceIfNeeded(task.placeId, updatedTasks);
     }
 
     async function handleUndoCompleteTask(task: LocationTask) {
@@ -158,6 +162,28 @@ export default function TasksScreen() {
         setSelectedTaskForLater(null);
     }
 
+    async function cleanupTemporaryPlaceIfNeeded(
+        placeId: string,
+        updatedTasks: LocationTask[]
+    ) {
+        const place = places.find((savedPlace) => savedPlace.id === placeId);
+
+        if (!place || place.type !== "temporary") {
+            return;
+        }
+
+        const hasRemainingOpenTasks = updatedTasks.some(
+            (task) =>
+                task.placeId === placeId &&
+                (task.status === "active" || task.status === "snoozed")
+        );
+
+        if (!hasRemainingOpenTasks) {
+            const updatedPlaces = await archiveSavedPlace(placeId);
+            setPlaces(updatedPlaces);
+        }
+    }
+
     return (
         <AppScreen>
             <PageHeader
@@ -188,7 +214,7 @@ export default function TasksScreen() {
                         }
                         onComplete={() => handleCompleteTask(task)}
                         onLater={() => handleOpenLaterOptions(task)}
-                        onDelete={() => handleDeleteTask(task.id)}
+                        onDelete={() => handleDeleteTask(task)}
                     />
                 ))}
             </View>
@@ -210,7 +236,7 @@ export default function TasksScreen() {
                             place={getPlaceName(task.placeId)}
                             time="Completed"
                             onUndo={() => handleUndoCompleteTask(task)}
-                            onDelete={() => handleDeleteTask(task.id)}
+                            onDelete={() => handleDeleteTask(task)}
                         />
                     ))
                 )}

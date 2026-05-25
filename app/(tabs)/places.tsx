@@ -50,8 +50,15 @@ export default function PlacesScreen() {
     }, [])
   );
 
-  const permanentPlaces = places.filter((place) => place.type === "permanent");
-  const temporaryPlaces = places.filter((place) => place.type === "temporary");
+  const visiblePlaces = places.filter((place) => !place.archivedAt);
+
+  const permanentPlaces = visiblePlaces.filter(
+    (place) => place.type === "permanent"
+  );
+
+  const temporaryPlaces = visiblePlaces.filter(
+    (place) => place.type === "temporary"
+  );
 
   return (
     <AppScreen>
