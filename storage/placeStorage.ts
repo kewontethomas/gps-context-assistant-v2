@@ -91,19 +91,22 @@ export async function archiveTemporaryPlaceIfCleared(
       (task.status === "active" || task.status === "snoozed")
   );
 
-  if (hasRemainingOpenTasks) {
-    return currentPlaces;
-  }
-
   const updatedPlaces = currentPlaces.map((savedPlace) => {
-    if (savedPlace.id === placeId) {
+    if (savedPlace.id !== placeId) {
+      return savedPlace;
+    }
+
+    if (hasRemainingOpenTasks) {
       return {
         ...savedPlace,
-        archivedAt: new Date().toISOString(),
+        archivedAt: undefined,
       };
     }
 
-    return savedPlace;
+    return {
+      ...savedPlace,
+      archivedAt: new Date().toISOString(),
+    };
   });
 
   await savePlaces(updatedPlaces);

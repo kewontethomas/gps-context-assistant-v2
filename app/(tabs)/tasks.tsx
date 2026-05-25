@@ -7,7 +7,10 @@ import { Card } from "@/components/Card";
 import { PageHeader } from "@/components/PageHeader";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { colors, typography } from "@/constants/theme";
-import { archiveSavedPlace, getSavedPlaces } from "@/storage/placeStorage";
+import {
+    archiveTemporaryPlaceIfCleared,
+    getSavedPlaces,
+} from "@/storage/placeStorage";
 import { deleteSavedTask, getSavedTasks, updateSavedTask } from "@/storage/taskStorage";
 import { SavedPlace } from "@/types/place";
 import { LocationTask } from "@/types/task";
@@ -142,7 +145,9 @@ export default function TasksScreen() {
         };
 
         const updatedTasks = await updateSavedTask(activeTask);
+
         setTasks(updatedTasks);
+        await cleanupTemporaryPlaceIfNeeded(task.placeId, updatedTasks);
     }
 
     function handleOpenLaterOptions(task: LocationTask) {
@@ -170,22 +175,12 @@ export default function TasksScreen() {
         placeId: string,
         updatedTasks: LocationTask[]
     ) {
-        const place = places.find((savedPlace) => savedPlace.id === placeId);
-
-        if (!place || place.type !== "temporary") {
-            return;
-        }
-
-        const hasRemainingOpenTasks = updatedTasks.some(
-            (task) =>
-                task.placeId === placeId &&
-                (task.status === "active" || task.status === "snoozed")
+        const updatedPlaces = await archiveTemporaryPlaceIfCleared(
+            placeId,
+            updatedTasks
         );
 
-        if (!hasRemainingOpenTasks) {
-            const updatedPlaces = await archiveSavedPlace(placeId);
-            setPlaces(updatedPlaces);
-        }
+        setPlaces(updatedPlaces);
     }
 
     return (

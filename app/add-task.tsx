@@ -75,11 +75,12 @@ export default function AddTaskScreen() {
         useCallback(() => {
             async function loadPlaces() {
                 const savedPlaces = await getSavedPlaces();
+                const visiblePlaces = savedPlaces.filter((place) => !place.archivedAt);
 
-                setPlaces(savedPlaces);
+                setPlaces(visiblePlaces);
 
-                if (!selectedPlaceId && savedPlaces.length > 0) {
-                    setSelectedPlaceId(savedPlaces[0].id);
+                if (!selectedPlaceId && visiblePlaces.length > 0) {
+                    setSelectedPlaceId(visiblePlaces[0].id);
                 }
             }
 
