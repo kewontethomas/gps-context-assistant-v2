@@ -67,7 +67,7 @@ export default function AddPlaceScreen() {
             setLongitude(firstResult.longitude);
 
             setCoordinateStatus(
-                `Coordinates found: ${firstResult.latitude.toFixed(5)}, ${firstResult.longitude.toFixed(5)}`
+                `Coordinates found:\nLat: ${firstResult.latitude.toFixed(5)}\nLng: ${firstResult.longitude.toFixed(5)}`
             );
         } catch (error) {
             console.log(error);
@@ -331,7 +331,8 @@ const styles = StyleSheet.create({
     coordinateStatus: {
         color: colors.softText,
         fontSize: 13,
-        lineHeight: 19,
+        lineHeight: 20,
         marginTop: 12,
+        flexShrink: 1,
     },
 });
