@@ -11,26 +11,30 @@ import { getSavedPlaces } from "@/storage/placeStorage";
 import { SavedPlace } from "@/types/place";
 import { getSavedTasks } from "@/storage/taskStorage";
 import { LocationTask } from "@/types/task";
+import { updateSavedTask } from "@/storage/taskStorage";
 
 type TaskCardProps = {
-    title: string;
+    task: LocationTask;
     place: string;
     time: string;
-    travel: string;
-    status: string;
+    onComplete: () => void;
 };
 
-function TaskCard({ title, place, time, travel, status }: TaskCardProps) {
+function TaskCard({ task, place, time, onComplete }: TaskCardProps) {
     return (
         <Card>
             <View style={styles.taskHeader}>
-                <Text style={styles.taskTitle}>{title}</Text>
-                <Text style={styles.statusBadge}>{status}</Text>
+                <Text style={styles.taskTitle}>{task.title}</Text>
+                <Text style={styles.statusBadge}>{task.status}</Text>
             </View>
 
             <Text style={styles.taskMeta}>Place: {place}</Text>
             <Text style={styles.taskMeta}>When: {time}</Text>
-            <Text style={styles.taskMeta}>Travel: {travel}</Text>
+            <Text style={styles.taskMeta}>Travel: {task.travelMode}</Text>
+
+            <View style={styles.taskActions}>
+                <PrimaryButton title="Complete" onPress={onComplete} />
+            </View>
         </Card>
     );
 }
@@ -65,6 +69,17 @@ export default function TasksScreen() {
         return place.name;
     }
 
+    async function handleCompleteTask(task: LocationTask) {
+        const completedTask: LocationTask = {
+            ...task,
+            status: "completed",
+            completedAt: new Date().toISOString(),
+        };
+
+        const updatedTasks = await updateSavedTask(completedTask);
+        setTasks(updatedTasks);
+    }
+
     return (
         <AppScreen>
             <PageHeader
@@ -86,11 +101,10 @@ export default function TasksScreen() {
                 {activeTasks.map((task) => (
                     <TaskCard
                         key={task.id}
-                        title={task.title}
+                        task={task}
                         place={getPlaceName(task.placeId)}
                         time={task.dueTime ?? task.dueDate ?? "No time set"}
-                        travel={task.travelMode}
-                        status={task.status}
+                        onComplete={() => handleCompleteTask(task)}
                     />
                 ))}
             </View>
@@ -142,5 +156,9 @@ const styles = StyleSheet.create({
         color: colors.softText,
         fontSize: 14,
         lineHeight: 22,
+    },
+
+    taskActions: {
+        marginTop: 16,
     },
 });

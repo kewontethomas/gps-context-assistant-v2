@@ -26,3 +26,19 @@ export async function addSavedTask(task: LocationTask) {
 
   return updatedTasks;
 }
+
+export async function updateSavedTask(updatedTask: LocationTask) {
+  const currentTasks = await getSavedTasks();
+
+  const updatedTasks = currentTasks.map((task) => {
+    if (task.id === updatedTask.id) {
+      return updatedTask;
+    }
+
+    return task;
+  });
+
+  await saveTasks(updatedTasks);
+
+  return updatedTasks;
+}
