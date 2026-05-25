@@ -1,6 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { savedPlaces as mockPlaces } from "@/data/places";
 import { SavedPlace } from "@/types/place";
+import { LocationTask } from "@/types/task";
 
 const PLACES_KEY = "gps-context-assistant:places";
 
@@ -66,6 +67,44 @@ export async function deleteSavedPlace(placeId: string) {
   const currentPlaces = await getSavedPlaces();
 
   const updatedPlaces = currentPlaces.filter((place) => place.id !== placeId);
+
+  await savePlaces(updatedPlaces);
+
+  return updatedPlaces;
+}
+
+export async function archiveTemporaryPlaceIfCleared(
+  placeId: string,
+  updatedTasks: LocationTask[]
+) {
+  const currentPlaces = await getSavedPlaces();
+
+  const place = currentPlaces.find((savedPlace) => savedPlace.id === placeId);
+
+  if (!place || place.type !== "temporary") {
+    return currentPlaces;
+  }
+
+  const hasRemainingOpenTasks = updatedTasks.some(
+    (task) =>
+      task.placeId === placeId &&
+      (task.status === "active" || task.status === "snoozed")
+  );
+
+  if (hasRemainingOpenTasks) {
+    return currentPlaces;
+  }
+
+  const updatedPlaces = currentPlaces.map((savedPlace) => {
+    if (savedPlace.id === placeId) {
+      return {
+        ...savedPlace,
+        archivedAt: new Date().toISOString(),
+      };
+    }
+
+    return savedPlace;
+  });
 
   await savePlaces(updatedPlaces);
 

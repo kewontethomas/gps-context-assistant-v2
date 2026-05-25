@@ -13,6 +13,7 @@ import {
     updateSavedTask,
 } from "@/storage/taskStorage";
 import { LocationTask } from "@/types/task";
+import { archiveTemporaryPlaceIfCleared } from "@/storage/placeStorage";
 
 export default function TaskDetailsScreen() {
     const params = useLocalSearchParams<{ taskId?: string }>();
@@ -66,7 +67,18 @@ export default function TaskDetailsScreen() {
             dueTime: dueTime.trim() || undefined,
         };
 
+        const tasks = await getSavedTasks();
+
+        const updatedTasks = tasks.map((savedTask) => {
+            if (savedTask.id === updatedTask.id) {
+                return updatedTask;
+            }
+
+            return savedTask;
+        });
+
         await updateSavedTask(updatedTask);
+        await archiveTemporaryPlaceIfCleared(task.placeId, updatedTasks);
 
         router.back();
     }
@@ -93,7 +105,12 @@ export default function TaskDetailsScreen() {
             return;
         }
 
+        const tasks = await getSavedTasks();
+
+        const updatedTasks = tasks.filter((savedTask) => savedTask.id !== task.id);
+
         await deleteSavedTask(task.id);
+        await archiveTemporaryPlaceIfCleared(task.placeId, updatedTasks);
 
         router.back();
     }
