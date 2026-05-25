@@ -45,3 +45,29 @@ export async function archiveSavedPlace(placeId: string) {
 
   return updatedPlaces;
 }
+
+export async function updateSavedPlace(updatedPlace: SavedPlace) {
+  const currentPlaces = await getSavedPlaces();
+
+  const updatedPlaces = currentPlaces.map((place) => {
+    if (place.id === updatedPlace.id) {
+      return updatedPlace;
+    }
+
+    return place;
+  });
+
+  await savePlaces(updatedPlaces);
+
+  return updatedPlaces;
+}
+
+export async function deleteSavedPlace(placeId: string) {
+  const currentPlaces = await getSavedPlaces();
+
+  const updatedPlaces = currentPlaces.filter((place) => place.id !== placeId);
+
+  await savePlaces(updatedPlaces);
+
+  return updatedPlaces;
+}

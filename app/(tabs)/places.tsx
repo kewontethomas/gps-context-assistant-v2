@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, Pressable } from "react-native";
 
 import { AppScreen } from "@/components/AppScreen";
 import { Card } from "@/components/Card";
@@ -16,6 +16,7 @@ type PlaceCardProps = {
   name: string;
   description: string;
   isTemporary?: boolean;
+  onPress: () => void;
 };
 
 function PlaceCard({
@@ -23,16 +24,19 @@ function PlaceCard({
   name,
   description,
   isTemporary = false,
+  onPress,
 }: PlaceCardProps) {
   return (
-    <Card variant={isTemporary ? "yellow" : "default"} style={styles.placeCard}>
-      <Text style={styles.placeIcon}>{icon}</Text>
+    <Pressable onPress={onPress}>
+      <Card variant={isTemporary ? "yellow" : "default"} style={styles.placeCard}>
+        <Text style={styles.placeIcon}>{icon}</Text>
 
-      <View style={styles.placeTextArea}>
-        <Text style={styles.placeName}>{name}</Text>
-        <Text style={styles.placeDescription}>{description}</Text>
-      </View>
-    </Card>
+        <View style={styles.placeTextArea}>
+          <Text style={styles.placeName}>{name}</Text>
+          <Text style={styles.placeDescription}>{description}</Text>
+        </View>
+      </Card>
+    </Pressable>
   );
 }
 
@@ -89,6 +93,7 @@ export default function PlacesScreen() {
               icon={place.icon}
               name={place.name}
               description={place.description}
+              onPress={() => router.push(`/place-details?placeId=${place.id}`)}
             />
           ))
         )}
@@ -112,6 +117,7 @@ export default function PlacesScreen() {
               name={place.name}
               description={place.description}
               isTemporary
+              onPress={() => router.push(`/place-details?placeId=${place.id}`)}
             />
           ))
         )}
