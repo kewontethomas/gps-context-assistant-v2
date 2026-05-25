@@ -11,7 +11,13 @@ import {
     archiveTemporaryPlaceIfCleared,
     getSavedPlaces,
 } from "@/storage/placeStorage";
-import { deleteSavedTask, getSavedTasks, updateSavedTask } from "@/storage/taskStorage";
+import { getSavedTasks } from "@/storage/taskStorage";
+import {
+    completeTask,
+    removeTask,
+    rescheduleTask,
+    undoCompleteTask,
+} from "@/storage/taskActions";
 import { SavedPlace } from "@/types/place";
 import { LocationTask } from "@/types/task";
 
@@ -118,36 +124,27 @@ export default function TasksScreen() {
     }
 
     async function handleCompleteTask(task: LocationTask) {
-        const completedTask: LocationTask = {
-            ...task,
-            status: "completed",
-            completedAt: new Date().toISOString(),
-        };
+        const result = await completeTask(task);
+        setTasks(result.tasks);
 
-        const updatedTasks = await updateSavedTask(completedTask);
-
-        setTasks(updatedTasks);
-        await cleanupTemporaryPlaceIfNeeded(task.placeId, updatedTasks);
+        const savedPlaces = await getSavedPlaces();
+        setPlaces(savedPlaces);
     }
 
     async function handleDeleteTask(task: LocationTask) {
-        const updatedTasks = await deleteSavedTask(task.id);
+        const result = await removeTask(task);
+        setTasks(result.tasks);
 
-        setTasks(updatedTasks);
-        await cleanupTemporaryPlaceIfNeeded(task.placeId, updatedTasks);
+        const savedPlaces = await getSavedPlaces();
+        setPlaces(savedPlaces);
     }
 
     async function handleUndoCompleteTask(task: LocationTask) {
-        const activeTask: LocationTask = {
-            ...task,
-            status: "active",
-            completedAt: undefined,
-        };
+        const result = await undoCompleteTask(task);
+        setTasks(result.tasks);
 
-        const updatedTasks = await updateSavedTask(activeTask);
-
-        setTasks(updatedTasks);
-        await cleanupTemporaryPlaceIfNeeded(task.placeId, updatedTasks);
+        const savedPlaces = await getSavedPlaces();
+        setPlaces(savedPlaces);
     }
 
     function handleOpenLaterOptions(task: LocationTask) {
@@ -159,28 +156,18 @@ export default function TasksScreen() {
             return;
         }
 
-        const updatedTask: LocationTask = {
-            ...selectedTaskForLater,
+        const result = await rescheduleTask(
+            selectedTaskForLater,
             dueDate,
-            dueTime,
-        };
-
-        const updatedTasks = await updateSavedTask(updatedTask);
-
-        setTasks(updatedTasks);
-        setSelectedTaskForLater(null);
-    }
-
-    async function cleanupTemporaryPlaceIfNeeded(
-        placeId: string,
-        updatedTasks: LocationTask[]
-    ) {
-        const updatedPlaces = await archiveTemporaryPlaceIfCleared(
-            placeId,
-            updatedTasks
+            dueTime
         );
 
-        setPlaces(updatedPlaces);
+        setTasks(result.tasks);
+
+        const savedPlaces = await getSavedPlaces();
+        setPlaces(savedPlaces);
+
+        setSelectedTaskForLater(null);
     }
 
     return (

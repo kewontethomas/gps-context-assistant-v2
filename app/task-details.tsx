@@ -7,13 +7,14 @@ import { Card } from "@/components/Card";
 import { PageHeader } from "@/components/PageHeader";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { colors } from "@/constants/theme";
-import {
-    deleteSavedTask,
-    getSavedTasks,
-    updateSavedTask,
-} from "@/storage/taskStorage";
 import { LocationTask } from "@/types/task";
-import { archiveTemporaryPlaceIfCleared } from "@/storage/placeStorage";
+import { getSavedTasks } from "@/storage/taskStorage";
+import {
+    completeTask,
+    removeTask,
+    undoCompleteTask,
+    updateTaskDetails,
+} from "@/storage/taskActions";
 
 export default function TaskDetailsScreen() {
     const params = useLocalSearchParams<{ taskId?: string }>();
@@ -59,26 +60,12 @@ export default function TaskDetailsScreen() {
             return;
         }
 
-        const updatedTask: LocationTask = {
-            ...task,
+        await updateTaskDetails(task, {
             title: title.trim(),
             notes: notes.trim() || undefined,
             dueDate: dueDate.trim() || undefined,
             dueTime: dueTime.trim() || undefined,
-        };
-
-        const tasks = await getSavedTasks();
-
-        const updatedTasks = tasks.map((savedTask) => {
-            if (savedTask.id === updatedTask.id) {
-                return updatedTask;
-            }
-
-            return savedTask;
         });
-
-        await updateSavedTask(updatedTask);
-        await archiveTemporaryPlaceIfCleared(task.placeId, updatedTasks);
 
         router.back();
     }
@@ -88,14 +75,11 @@ export default function TaskDetailsScreen() {
             return;
         }
 
-        const updatedTask: LocationTask = {
-            ...task,
-            status: task.status === "completed" ? "active" : "completed",
-            completedAt:
-                task.status === "completed" ? undefined : new Date().toISOString(),
-        };
-
-        await updateSavedTask(updatedTask);
+        if (task.status === "completed") {
+            await undoCompleteTask(task);
+        } else {
+            await completeTask(task);
+        }
 
         router.back();
     }
@@ -105,12 +89,7 @@ export default function TaskDetailsScreen() {
             return;
         }
 
-        const tasks = await getSavedTasks();
-
-        const updatedTasks = tasks.filter((savedTask) => savedTask.id !== task.id);
-
-        await deleteSavedTask(task.id);
-        await archiveTemporaryPlaceIfCleared(task.placeId, updatedTasks);
+        await removeTask(task);
 
         router.back();
     }
