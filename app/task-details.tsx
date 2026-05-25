@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { Text, TextInput, StyleSheet, View } from "react-native";
+import { Pressable, Text, TextInput, StyleSheet, View } from "react-native";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 
 import { AppScreen } from "@/components/AppScreen";
@@ -15,6 +15,28 @@ import {
     undoCompleteTask,
     updateTaskDetails,
 } from "@/storage/taskActions";
+
+const reminderProfiles: ReminderProfile[] = [
+    "gentle",
+    "normal",
+    "persistent",
+];
+
+function formatLabel(value: string) {
+    return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
+function getReminderProfileDescription(profile: ReminderProfile) {
+    if (profile === "gentle") {
+        return "Arrival and departure reminders only.";
+    }
+
+    if (profile === "persistent") {
+        return "Arrival, repeated reminders, and departure alerts.";
+    }
+
+    return "Balanced reminders while you are at the place.";
+}
 
 
 export default function TaskDetailsScreen() {
@@ -151,6 +173,43 @@ export default function TaskDetailsScreen() {
                 />
             </Card>
 
+            <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Reminder intensity</Text>
+
+                {reminderProfiles.map((profile) => {
+                    const selected = reminderProfile === profile;
+
+                    return (
+                        <Pressable
+                            key={profile}
+                            onPress={() => setReminderProfile(profile)}
+                            style={[
+                                styles.reminderProfileCard,
+                                selected && styles.reminderProfileCardSelected,
+                            ]}
+                        >
+                            <Text
+                                style={[
+                                    styles.reminderProfileTitle,
+                                    selected && styles.reminderProfileTitleSelected,
+                                ]}
+                            >
+                                {formatLabel(profile)}
+                            </Text>
+
+                            <Text
+                                style={[
+                                    styles.reminderProfileDescription,
+                                    selected && styles.reminderProfileDescriptionSelected,
+                                ]}
+                            >
+                                {getReminderProfileDescription(profile)}
+                            </Text>
+                        </Pressable>
+                    );
+                })}
+            </View>
+
             <View style={styles.actions}>
                 <PrimaryButton title="Save Changes" onPress={handleSaveChanges} />
 
@@ -206,4 +265,50 @@ const styles = StyleSheet.create({
         gap: 14,
         paddingBottom: 90,
     },
+
+    section: {
+    marginBottom: 30,
+},
+
+sectionTitle: {
+    color: colors.text,
+    fontSize: 18,
+    fontWeight: "900",
+    marginBottom: 14,
+},
+
+reminderProfileCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 24,
+    padding: 18,
+    borderColor: colors.border,
+    borderWidth: 1,
+    marginBottom: 12,
+},
+
+reminderProfileCardSelected: {
+    borderColor: colors.primary,
+    backgroundColor: "#EFF6FF",
+},
+
+reminderProfileTitle: {
+    color: colors.text,
+    fontSize: 16,
+    fontWeight: "900",
+    marginBottom: 4,
+},
+
+reminderProfileTitleSelected: {
+    color: colors.primary,
+},
+
+reminderProfileDescription: {
+    color: colors.softText,
+    fontSize: 13,
+    lineHeight: 19,
+},
+
+reminderProfileDescriptionSelected: {
+    color: "#475569",
+},
 });
