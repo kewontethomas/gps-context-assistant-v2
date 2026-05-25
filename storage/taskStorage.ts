@@ -42,3 +42,13 @@ export async function updateSavedTask(updatedTask: LocationTask) {
 
   return updatedTasks;
 }
+
+export async function deleteSavedTask(taskId: string) {
+  const currentTasks = await getSavedTasks();
+
+  const updatedTasks = currentTasks.filter((task) => task.id !== taskId);
+
+  await saveTasks(updatedTasks);
+
+  return updatedTasks;
+}

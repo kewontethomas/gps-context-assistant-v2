@@ -1,6 +1,6 @@
-import { View, Text, StyleSheet } from "react-native";
-import { useCallback, useState } from "react";
 import { router, useFocusEffect } from "expo-router";
+import { useCallback, useState } from "react";
+import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
 
 import { AppScreen } from "@/components/AppScreen";
 import { Card } from "@/components/Card";
@@ -8,19 +8,29 @@ import { PageHeader } from "@/components/PageHeader";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { colors, typography } from "@/constants/theme";
 import { getSavedPlaces } from "@/storage/placeStorage";
+import { deleteSavedTask, getSavedTasks, updateSavedTask } from "@/storage/taskStorage";
 import { SavedPlace } from "@/types/place";
-import { getSavedTasks } from "@/storage/taskStorage";
 import { LocationTask } from "@/types/task";
-import { updateSavedTask } from "@/storage/taskStorage";
 
 type TaskCardProps = {
     task: LocationTask;
     place: string;
     time: string;
     onComplete?: () => void;
+    onUndo?: () => void;
+    onDelete: () => void;
+    onLater?: () => void;
 };
 
-function TaskCard({ task, place, time, onComplete }: TaskCardProps) {
+function TaskCard({
+    task,
+    place,
+    time,
+    onComplete,
+    onDelete,
+    onUndo,
+    onLater,
+}: TaskCardProps) {
     return (
         <Card>
             <View style={styles.taskHeader}>
@@ -32,11 +42,37 @@ function TaskCard({ task, place, time, onComplete }: TaskCardProps) {
             <Text style={styles.taskMeta}>When: {time}</Text>
             <Text style={styles.taskMeta}>Travel: {task.travelMode}</Text>
 
-            {task.status === "active" && onComplete && (
-                <View style={styles.taskActions}>
-                    <PrimaryButton title="Complete" onPress={onComplete} />
+            <View style={styles.taskActions}>
+                {task.status === "active" && onComplete && (
+                    <View style={styles.actionButton}>
+                        <PrimaryButton title="Complete" onPress={onComplete} />
+                    </View>
+                )}
+
+                {task.status === "active" && onLater && (
+                    <View style={styles.actionButton}>
+                        <PrimaryButton
+                            title="Later"
+                            variant="secondary"
+                            onPress={onLater}
+                        />
+                    </View>
+                )}
+
+                {task.status === "completed" && onUndo && (
+                    <View style={styles.actionButton}>
+                        <PrimaryButton title="Undo" onPress={onUndo} />
+                    </View>
+                )}
+
+                <View style={styles.actionButton}>
+                    <PrimaryButton
+                        title="Delete"
+                        variant="secondary"
+                        onPress={onDelete}
+                    />
                 </View>
-            )}
+            </View>
         </Card>
     );
 }
@@ -44,6 +80,8 @@ function TaskCard({ task, place, time, onComplete }: TaskCardProps) {
 export default function TasksScreen() {
     const [tasks, setTasks] = useState<LocationTask[]>([]);
     const [places, setPlaces] = useState<SavedPlace[]>([]);
+    const [selectedTaskForLater, setSelectedTaskForLater] =
+        useState<LocationTask | null>(null);
 
     useFocusEffect(
         useCallback(() => {
@@ -83,6 +121,43 @@ export default function TasksScreen() {
         setTasks(updatedTasks);
     }
 
+    async function handleDeleteTask(taskId: string) {
+        const updatedTasks = await deleteSavedTask(taskId);
+        setTasks(updatedTasks);
+    }
+
+    async function handleUndoCompleteTask(task: LocationTask) {
+        const activeTask: LocationTask = {
+            ...task,
+            status: "active",
+            completedAt: undefined,
+        };
+
+        const updatedTasks = await updateSavedTask(activeTask);
+        setTasks(updatedTasks);
+    }
+
+    function handleOpenLaterOptions(task: LocationTask) {
+        setSelectedTaskForLater(task);
+    }
+
+    async function handleMoveTaskLater(dueDate: string, dueTime?: string) {
+        if (!selectedTaskForLater) {
+            return;
+        }
+
+        const updatedTask: LocationTask = {
+            ...selectedTaskForLater,
+            dueDate,
+            dueTime,
+        };
+
+        const updatedTasks = await updateSavedTask(updatedTask);
+
+        setTasks(updatedTasks);
+        setSelectedTaskForLater(null);
+    }
+
     return (
         <AppScreen>
             <PageHeader
@@ -106,8 +181,14 @@ export default function TasksScreen() {
                         key={task.id}
                         task={task}
                         place={getPlaceName(task.placeId)}
-                        time={task.dueTime ?? task.dueDate ?? "No time set"}
+                        time={
+                            task.dueDate && task.dueTime
+                                ? `${task.dueDate} • ${task.dueTime}`
+                                : task.dueDate ?? task.dueTime ?? "No time set"
+                        }
                         onComplete={() => handleCompleteTask(task)}
+                        onLater={() => handleOpenLaterOptions(task)}
+                        onDelete={() => handleDeleteTask(task.id)}
                     />
                 ))}
             </View>
@@ -127,12 +208,64 @@ export default function TasksScreen() {
                             key={task.id}
                             task={task}
                             place={getPlaceName(task.placeId)}
-                            time={task.completedAt ? "Completed" : "Completed"}
-                            onComplete={() => { }}
+                            time="Completed"
+                            onUndo={() => handleUndoCompleteTask(task)}
+                            onDelete={() => handleDeleteTask(task.id)}
                         />
                     ))
                 )}
             </View>
+
+            <Modal
+                visible={selectedTaskForLater !== null}
+                transparent
+                animationType="slide"
+            >
+                <View style={styles.modalOverlay}>
+                    <View style={styles.modalCard}>
+                        <Text style={styles.modalTitle}>Move task</Text>
+
+                        <Text style={styles.modalSubtitle}>
+                            Choose when this task should come back.
+                        </Text>
+
+                        <Pressable
+                            style={styles.modalOption}
+                            onPress={() => handleMoveTaskLater("Today", "Later")}
+                        >
+                            <Text style={styles.modalOptionText}>Later today</Text>
+                        </Pressable>
+
+                        <Pressable
+                            style={styles.modalOption}
+                            onPress={() => handleMoveTaskLater("Tomorrow")}
+                        >
+                            <Text style={styles.modalOptionText}>Tomorrow</Text>
+                        </Pressable>
+
+                        <Pressable
+                            style={styles.modalOption}
+                            onPress={() => handleMoveTaskLater("Tomorrow", "Morning")}
+                        >
+                            <Text style={styles.modalOptionText}>Tomorrow morning</Text>
+                        </Pressable>
+
+                        <Pressable
+                            style={styles.modalOption}
+                            onPress={() => handleMoveTaskLater("Next workday")}
+                        >
+                            <Text style={styles.modalOptionText}>Next workday</Text>
+                        </Pressable>
+
+                        <Pressable
+                            style={styles.cancelOption}
+                            onPress={() => setSelectedTaskForLater(null)}
+                        >
+                            <Text style={styles.cancelOptionText}>Cancel</Text>
+                        </Pressable>
+                    </View>
+                </View>
+            </Modal>
         </AppScreen>
     );
 }
@@ -184,6 +317,8 @@ const styles = StyleSheet.create({
     },
 
     taskActions: {
+        flexDirection: "row",
+        gap: 10,
         marginTop: 16,
     },
 
@@ -192,4 +327,64 @@ const styles = StyleSheet.create({
         fontSize: 15,
         lineHeight: 22,
     },
+
+    actionButton: {
+        flex: 1,
+    },
+
+    modalOverlay: {
+  flex: 1,
+  backgroundColor: "rgba(0, 0, 0, 0.35)",
+  justifyContent: "flex-end",
+},
+
+modalCard: {
+  backgroundColor: colors.background,
+  borderTopLeftRadius: 32,
+  borderTopRightRadius: 32,
+  padding: 24,
+  paddingBottom: 42,
+},
+
+modalTitle: {
+  color: colors.text,
+  fontSize: 24,
+  fontWeight: "900",
+  marginBottom: 6,
+},
+
+modalSubtitle: {
+  color: colors.softText,
+  fontSize: 15,
+  lineHeight: 22,
+  marginBottom: 18,
+},
+
+modalOption: {
+  backgroundColor: colors.surface,
+  borderRadius: 18,
+  paddingVertical: 16,
+  paddingHorizontal: 18,
+  marginBottom: 10,
+},
+
+modalOptionText: {
+  color: colors.text,
+  fontSize: 16,
+  fontWeight: "800",
+},
+
+cancelOption: {
+  backgroundColor: colors.primarySoft,
+  borderRadius: 18,
+  paddingVertical: 16,
+  alignItems: "center",
+  marginTop: 8,
+},
+
+cancelOptionText: {
+  color: colors.primary,
+  fontSize: 16,
+  fontWeight: "900",
+},
 });
