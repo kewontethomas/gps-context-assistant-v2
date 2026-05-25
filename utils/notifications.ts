@@ -1,3 +1,4 @@
+import * as Device from "expo-device";
 import * as Notifications from "expo-notifications";
 
 Notifications.setNotificationHandler({
@@ -10,6 +11,11 @@ Notifications.setNotificationHandler({
 });
 
 export async function requestNotificationPermission() {
+  if (__DEV__ && !Device.isDevice) {
+    console.log("Notifications require a physical device.");
+    return false;
+  }
+
   const currentPermission = await Notifications.getPermissionsAsync();
 
   if (currentPermission.granted) {

@@ -16,6 +16,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { colors, typography } from "@/constants/theme";
 import { PlaceType, TravelMode } from "@/types/place";
+import * as Location from "expo-location";
 
 
 const placeTypes: PlaceType[] = ["permanent", "temporary"];
@@ -38,6 +39,41 @@ export default function AddPlaceScreen() {
     const [address, setAddress] = useState("");
     const [placeType, setPlaceType] = useState<PlaceType>("permanent");
     const [travelMode, setTravelMode] = useState<TravelMode>("driving");
+    const [latitude, setLatitude] = useState<number | undefined>(undefined);
+    const [longitude, setLongitude] = useState<number | undefined>(undefined);
+    const [coordinateStatus, setCoordinateStatus] = useState(
+        "No coordinates found yet."
+    );
+
+    async function handleFindCoordinates() {
+        if (!address.trim()) {
+            setCoordinateStatus("Enter an address first.");
+            return;
+        }
+
+        try {
+            setCoordinateStatus("Finding coordinates...");
+
+            const results = await Location.geocodeAsync(address.trim());
+
+            if (results.length === 0) {
+                setCoordinateStatus("No coordinates found for that address.");
+                return;
+            }
+
+            const firstResult = results[0];
+
+            setLatitude(firstResult.latitude);
+            setLongitude(firstResult.longitude);
+
+            setCoordinateStatus(
+                `Coordinates found: ${firstResult.latitude.toFixed(5)}, ${firstResult.longitude.toFixed(5)}`
+            );
+        } catch (error) {
+            console.log(error);
+            setCoordinateStatus("Could not find coordinates. Try a more complete address.");
+        }
+    }
 
     async function handleSavePlace() {
         if (!placeName.trim()) {
@@ -59,6 +95,8 @@ export default function AddPlaceScreen() {
                     : "Temporary place for this task or errand",
             address: address.trim(),
 
+            latitude,
+            longitude,
             radiusMeters: 150,
 
             type: placeType,
@@ -103,6 +141,16 @@ export default function AddPlaceScreen() {
                     value={address}
                     onChangeText={setAddress}
                 />
+
+                <PrimaryButton
+                    title="Find Coordinates"
+                    variant="secondary"
+                    onPress={handleFindCoordinates}
+                />
+
+                <Text style={styles.coordinateStatus}>
+                    {coordinateStatus}
+                </Text>
             </Card>
 
             <View style={styles.section}>
@@ -278,5 +326,12 @@ const styles = StyleSheet.create({
     actions: {
         gap: 14,
         paddingBottom: 90,
+    },
+
+    coordinateStatus: {
+        color: colors.softText,
+        fontSize: 13,
+        lineHeight: 19,
+        marginTop: 12,
     },
 });
