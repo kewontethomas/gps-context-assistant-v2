@@ -26,7 +26,7 @@ export default function TaskDetailsScreen() {
     const [dueDate, setDueDate] = useState("");
     const [dueTime, setDueTime] = useState("");
     const [reminderProfile, setReminderProfile] =
-    useState<ReminderProfile>("normal");
+        useState<ReminderProfile>("normal");
 
     useFocusEffect(
         useCallback(() => {

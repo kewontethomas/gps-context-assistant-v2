@@ -31,9 +31,6 @@ const reminderProfiles: ReminderProfile[] = [
     "persistent",
 ];
 
-const [reminderProfile, setReminderProfile] =
-    useState<ReminderProfile>("normal");
-
 const reminderOptions = [
     {
         key: "arrival",
@@ -91,6 +88,8 @@ export default function AddTaskScreen() {
     const [departureReminder, setDepartureReminder] = useState(true);
     const [repeatReminder, setRepeatReminder] = useState(false);
     const [dueReminder, setDueReminder] = useState(false);
+    const [reminderProfile, setReminderProfile] =
+        useState<ReminderProfile>("normal");
 
     useFocusEffect(
         useCallback(() => {
