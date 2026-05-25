@@ -18,6 +18,13 @@ export default function RootLayout() {
           headerShown: false,
         }}
       />
+
+      <Stack.Screen
+        name="task-details"
+        options={{
+          headerShown: false,
+        }}
+      />
     </Stack>
   );
 }

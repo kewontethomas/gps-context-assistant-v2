@@ -20,6 +20,7 @@ type TaskCardProps = {
     onUndo?: () => void;
     onDelete: () => void;
     onLater?: () => void;
+    onOpen: () => void;
 };
 
 function TaskCard({
@@ -30,17 +31,20 @@ function TaskCard({
     onDelete,
     onUndo,
     onLater,
+    onOpen,
 }: TaskCardProps) {
     return (
         <Card>
-            <View style={styles.taskHeader}>
-                <Text style={styles.taskTitle}>{task.title}</Text>
-                <Text style={styles.statusBadge}>{task.status}</Text>
-            </View>
+            <Pressable onPress={onOpen}>
+                <View style={styles.taskHeader}>
+                    <Text style={styles.taskTitle}>{task.title}</Text>
+                    <Text style={styles.statusBadge}>{task.status}</Text>
+                </View>
 
-            <Text style={styles.taskMeta}>Place: {place}</Text>
-            <Text style={styles.taskMeta}>When: {time}</Text>
-            <Text style={styles.taskMeta}>Travel: {task.travelMode}</Text>
+                <Text style={styles.taskMeta}>Place: {place}</Text>
+                <Text style={styles.taskMeta}>When: {time}</Text>
+                <Text style={styles.taskMeta}>Travel: {task.travelMode}</Text>
+            </Pressable>
 
             <View style={styles.taskActions}>
                 {task.status === "active" && onComplete && (
@@ -223,6 +227,7 @@ export default function TasksScreen() {
                             onComplete={() => handleCompleteTask(task)}
                             onLater={() => handleOpenLaterOptions(task)}
                             onDelete={() => handleDeleteTask(task)}
+                            onOpen={() => router.push(`/task-details?taskId=${task.id}`)}
                         />
                     ))
                 )}
@@ -246,6 +251,7 @@ export default function TasksScreen() {
                             time="Completed"
                             onUndo={() => handleUndoCompleteTask(task)}
                             onDelete={() => handleDeleteTask(task)}
+                            onOpen={() => router.push(`/task-details?taskId=${task.id}`)}
                         />
                     ))
                 )}
@@ -461,9 +467,9 @@ const styles = StyleSheet.create({
     },
 
     emptyTitle: {
-    color: "#4A3B14",
-    fontSize: 16,
-    fontWeight: "900",
-    marginBottom: 6,
-},
+        color: "#4A3B14",
+        fontSize: 16,
+        fontWeight: "900",
+        marginBottom: 6,
+    },
 });
