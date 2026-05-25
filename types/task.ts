@@ -37,4 +37,8 @@ export type LocationTask = {
   snoozedUntil?: string;
   createdAt: string;
   completedAt?: string;
+
+  reminderProfile: ReminderProfile;
 };
+
+export type ReminderProfile = "gentle" | "normal" | "persistent";

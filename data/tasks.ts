@@ -9,6 +9,7 @@ export const locationTasks: LocationTask[] = [
     notes: "Verify alerts and confirm equipment status.",
 
     status: "active",
+    reminderProfile: "normal",
 
     dueDate: "Today",
     dueTime: undefined,
@@ -36,6 +37,7 @@ export const locationTasks: LocationTask[] = [
     notes: "Move to tomorrow if not completed tonight.",
 
     status: "active",
+    reminderProfile: "normal",
 
     dueDate: "Today",
     dueTime: "Tonight",

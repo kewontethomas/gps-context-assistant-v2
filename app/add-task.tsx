@@ -16,7 +16,7 @@ import { colors, typography } from "@/constants/theme";
 import { getSavedPlaces } from "@/storage/placeStorage";
 import { addSavedTask } from "@/storage/taskStorage";
 import { SavedPlace } from "@/types/place";
-import { LocationTask, TaskRecurrence } from "@/types/task";
+import { LocationTask, ReminderProfile, TaskRecurrence } from "@/types/task";
 
 const recurrenceOptions: TaskRecurrence[] = [
     "none",
@@ -24,6 +24,15 @@ const recurrenceOptions: TaskRecurrence[] = [
     "weekdays",
     "weekly",
 ];
+
+const reminderProfiles: ReminderProfile[] = [
+    "gentle",
+    "normal",
+    "persistent",
+];
+
+const [reminderProfile, setReminderProfile] =
+    useState<ReminderProfile>("normal");
 
 const reminderOptions = [
     {
@@ -47,6 +56,18 @@ const reminderOptions = [
         description: "Alert me early enough to finish on time.",
     },
 ];
+
+function getReminderProfileDescription(profile: ReminderProfile) {
+    if (profile === "gentle") {
+        return "Arrival and departure reminders only.";
+    }
+
+    if (profile === "persistent") {
+        return "Arrival, repeated reminders, and departure alerts.";
+    }
+
+    return "Balanced reminders while you are at the place.";
+}
 
 function formatLabel(value: string) {
     if (value === "none") {
@@ -134,13 +155,19 @@ export default function AddTaskScreen() {
             travelBufferMinutes: 10,
 
             notifyBeforeLeave: false,
-            notifyOnArrival: arrivalReminder,
-            notifyWhileThere: repeatReminder,
-            notifyEveryMinutes: repeatReminder ? 30 : undefined,
-            notifyOnDeparture: departureReminder,
+            notifyOnArrival: reminderProfile !== "gentle" || arrivalReminder,
+            notifyWhileThere: reminderProfile === "normal" || reminderProfile === "persistent",
+            notifyEveryMinutes:
+                reminderProfile === "persistent"
+                    ? 15
+                    : reminderProfile === "normal"
+                        ? 30
+                        : undefined,
+            notifyOnDeparture: reminderProfile !== "gentle" || departureReminder,
             notifyBeforeDue: dueReminder,
-
             createdAt: new Date().toISOString(),
+
+            reminderProfile,
         };
 
         await addSavedTask(newTask);
@@ -273,6 +300,43 @@ export default function AddTaskScreen() {
                         );
                     })}
                 </View>
+            </View>
+
+            <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Reminder intensity</Text>
+
+                {reminderProfiles.map((profile) => {
+                    const selected = reminderProfile === profile;
+
+                    return (
+                        <Pressable
+                            key={profile}
+                            onPress={() => setReminderProfile(profile)}
+                            style={[
+                                styles.reminderProfileCard,
+                                selected && styles.reminderProfileCardSelected,
+                            ]}
+                        >
+                            <Text
+                                style={[
+                                    styles.reminderProfileTitle,
+                                    selected && styles.reminderProfileTitleSelected,
+                                ]}
+                            >
+                                {formatLabel(profile)}
+                            </Text>
+
+                            <Text
+                                style={[
+                                    styles.reminderProfileDescription,
+                                    selected && styles.reminderProfileDescriptionSelected,
+                                ]}
+                            >
+                                {getReminderProfileDescription(profile)}
+                            </Text>
+                        </Pressable>
+                    );
+                })}
             </View>
 
             <View style={styles.section}>
@@ -513,4 +577,39 @@ const styles = StyleSheet.create({
         gap: 14,
         paddingBottom: 90,
     },
+
+    reminderProfileCard: {
+  backgroundColor: "#FFFFFF",
+  borderRadius: 24,
+  padding: 18,
+  borderColor: colors.border,
+  borderWidth: 1,
+  marginBottom: 12,
+},
+
+reminderProfileCardSelected: {
+  borderColor: colors.primary,
+  backgroundColor: "#EFF6FF",
+},
+
+reminderProfileTitle: {
+  color: colors.text,
+  fontSize: 16,
+  fontWeight: "900",
+  marginBottom: 4,
+},
+
+reminderProfileTitleSelected: {
+  color: colors.primary,
+},
+
+reminderProfileDescription: {
+  color: colors.softText,
+  fontSize: 13,
+  lineHeight: 19,
+},
+
+reminderProfileDescriptionSelected: {
+  color: "#475569",
+},
 });

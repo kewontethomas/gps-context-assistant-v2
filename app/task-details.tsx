@@ -7,7 +7,7 @@ import { Card } from "@/components/Card";
 import { PageHeader } from "@/components/PageHeader";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { colors } from "@/constants/theme";
-import { LocationTask } from "@/types/task";
+import { LocationTask, ReminderProfile } from "@/types/task";
 import { getSavedTasks } from "@/storage/taskStorage";
 import {
     completeTask,
@@ -15,6 +15,7 @@ import {
     undoCompleteTask,
     updateTaskDetails,
 } from "@/storage/taskActions";
+
 
 export default function TaskDetailsScreen() {
     const params = useLocalSearchParams<{ taskId?: string }>();
@@ -24,6 +25,8 @@ export default function TaskDetailsScreen() {
     const [notes, setNotes] = useState("");
     const [dueDate, setDueDate] = useState("");
     const [dueTime, setDueTime] = useState("");
+    const [reminderProfile, setReminderProfile] =
+  useState<ReminderProfile>("normal");
 
     useFocusEffect(
         useCallback(() => {
@@ -44,6 +47,7 @@ export default function TaskDetailsScreen() {
                 setNotes(foundTask.notes ?? "");
                 setDueDate(foundTask.dueDate ?? "");
                 setDueTime(foundTask.dueTime ?? "");
+                setReminderProfile(foundTask.reminderProfile ?? "normal");
             }
 
             loadTask();
@@ -65,6 +69,7 @@ export default function TaskDetailsScreen() {
             notes: notes.trim() || undefined,
             dueDate: dueDate.trim() || undefined,
             dueTime: dueTime.trim() || undefined,
+            reminderProfile,
         });
 
         router.back();

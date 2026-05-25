@@ -53,6 +53,7 @@ function TaskCard({
                 <Text style={styles.taskMeta}>Place: {place}</Text>
                 <Text style={styles.taskMeta}>When: {time}</Text>
                 <Text style={styles.taskMeta}>Travel: {task.travelMode}</Text>
+                <Text style={styles.taskMeta}>Reminder: {task.reminderProfile ?? "normal"}</Text>
             </Pressable>
 
             <View style={styles.taskActions}>
