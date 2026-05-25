@@ -258,6 +258,20 @@ export default function TasksScreen() {
                         </Pressable>
 
                         <Pressable
+                            style={styles.modalOption}
+                            onPress={() => handleMoveTaskLater("Next arrival")}
+                        >
+                            <Text style={styles.modalOptionText}>Next time I’m at this place</Text>
+                        </Pressable>
+
+                        <Pressable
+                            style={styles.modalOptionDisabled}
+                            onPress={() => console.log("Pick date & time coming soon")}
+                        >
+                            <Text style={styles.modalOptionDisabledText}>Pick date & time</Text>
+                        </Pressable>
+
+                        <Pressable
                             style={styles.cancelOption}
                             onPress={() => setSelectedTaskForLater(null)}
                         >
@@ -333,58 +347,72 @@ const styles = StyleSheet.create({
     },
 
     modalOverlay: {
-  flex: 1,
-  backgroundColor: "rgba(0, 0, 0, 0.35)",
-  justifyContent: "flex-end",
-},
+        flex: 1,
+        backgroundColor: "rgba(0, 0, 0, 0.35)",
+        justifyContent: "flex-end",
+    },
 
-modalCard: {
-  backgroundColor: colors.background,
-  borderTopLeftRadius: 32,
-  borderTopRightRadius: 32,
-  padding: 24,
-  paddingBottom: 42,
-},
+    modalCard: {
+        backgroundColor: colors.background,
+        borderTopLeftRadius: 32,
+        borderTopRightRadius: 32,
+        padding: 24,
+        paddingBottom: 42,
+    },
 
-modalTitle: {
-  color: colors.text,
-  fontSize: 24,
-  fontWeight: "900",
-  marginBottom: 6,
-},
+    modalTitle: {
+        color: colors.text,
+        fontSize: 24,
+        fontWeight: "900",
+        marginBottom: 6,
+    },
 
-modalSubtitle: {
-  color: colors.softText,
-  fontSize: 15,
-  lineHeight: 22,
-  marginBottom: 18,
-},
+    modalSubtitle: {
+        color: colors.softText,
+        fontSize: 15,
+        lineHeight: 22,
+        marginBottom: 18,
+    },
 
-modalOption: {
-  backgroundColor: colors.surface,
-  borderRadius: 18,
-  paddingVertical: 16,
-  paddingHorizontal: 18,
-  marginBottom: 10,
-},
+    modalOption: {
+        backgroundColor: colors.surface,
+        borderRadius: 18,
+        paddingVertical: 16,
+        paddingHorizontal: 18,
+        marginBottom: 10,
+    },
 
-modalOptionText: {
-  color: colors.text,
-  fontSize: 16,
-  fontWeight: "800",
-},
+    modalOptionText: {
+        color: colors.text,
+        fontSize: 16,
+        fontWeight: "800",
+    },
 
-cancelOption: {
-  backgroundColor: colors.primarySoft,
-  borderRadius: 18,
-  paddingVertical: 16,
-  alignItems: "center",
-  marginTop: 8,
-},
+    cancelOption: {
+        backgroundColor: colors.primarySoft,
+        borderRadius: 18,
+        paddingVertical: 16,
+        alignItems: "center",
+        marginTop: 8,
+    },
 
-cancelOptionText: {
-  color: colors.primary,
-  fontSize: 16,
-  fontWeight: "900",
-},
+    cancelOptionText: {
+        color: colors.primary,
+        fontSize: 16,
+        fontWeight: "900",
+    },
+
+    modalOptionDisabled: {
+        backgroundColor: "#E5E7EB",
+        borderRadius: 18,
+        paddingVertical: 16,
+        paddingHorizontal: 18,
+        marginBottom: 10,
+    },
+
+    modalOptionDisabledText: {
+        color: "#94A3B8",
+        fontSize: 16,
+        fontWeight: "800",
+    },
 });
