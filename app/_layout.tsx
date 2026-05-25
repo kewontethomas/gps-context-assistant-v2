@@ -13,7 +13,7 @@ export default function RootLayout() {
       />
 
       <Stack.Screen
-        name="add-task"
+        name="reschedule-task"
         options={{
           headerShown: false,
         }}

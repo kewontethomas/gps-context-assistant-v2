@@ -265,10 +265,19 @@ export default function TasksScreen() {
                         </Pressable>
 
                         <Pressable
-                            style={styles.modalOptionDisabled}
-                            onPress={() => console.log("Pick date & time coming soon")}
+                            style={styles.modalOption}
+                            onPress={() => {
+                                if (!selectedTaskForLater) {
+                                    return;
+                                }
+
+                                const taskId = selectedTaskForLater.id;
+
+                                setSelectedTaskForLater(null);
+                                router.push(`/reschedule-task?taskId=${taskId}`);
+                            }}
                         >
-                            <Text style={styles.modalOptionDisabledText}>Pick date & time</Text>
+                            <Text style={styles.modalOptionText}>Pick date & time</Text>
                         </Pressable>
 
                         <Pressable
