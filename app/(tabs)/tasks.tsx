@@ -17,7 +17,7 @@ type TaskCardProps = {
     task: LocationTask;
     place: string;
     time: string;
-    onComplete: () => void;
+    onComplete?: () => void;
 };
 
 function TaskCard({ task, place, time, onComplete }: TaskCardProps) {
@@ -32,9 +32,11 @@ function TaskCard({ task, place, time, onComplete }: TaskCardProps) {
             <Text style={styles.taskMeta}>When: {time}</Text>
             <Text style={styles.taskMeta}>Travel: {task.travelMode}</Text>
 
-            <View style={styles.taskActions}>
-                <PrimaryButton title="Complete" onPress={onComplete} />
-            </View>
+            {task.status === "active" && onComplete && (
+                <View style={styles.taskActions}>
+                    <PrimaryButton title="Complete" onPress={onComplete} />
+                </View>
+            )}
         </Card>
     );
 }
@@ -58,6 +60,7 @@ export default function TasksScreen() {
     );
 
     const activeTasks = tasks.filter((task) => task.status === "active");
+    const completedTasks = tasks.filter((task) => task.status === "completed");
 
     function getPlaceName(placeId: string) {
         const place = places.find((savedPlace) => savedPlace.id === placeId);
@@ -107,6 +110,28 @@ export default function TasksScreen() {
                         onComplete={() => handleCompleteTask(task)}
                     />
                 ))}
+            </View>
+
+            <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Completed Tasks</Text>
+
+                {completedTasks.length === 0 ? (
+                    <Card variant="yellow">
+                        <Text style={styles.emptyText}>
+                            Completed tasks will appear here after you finish them.
+                        </Text>
+                    </Card>
+                ) : (
+                    completedTasks.map((task) => (
+                        <TaskCard
+                            key={task.id}
+                            task={task}
+                            place={getPlaceName(task.placeId)}
+                            time={task.completedAt ? "Completed" : "Completed"}
+                            onComplete={() => { }}
+                        />
+                    ))
+                )}
             </View>
         </AppScreen>
     );
@@ -160,5 +185,11 @@ const styles = StyleSheet.create({
 
     taskActions: {
         marginTop: 16,
+    },
+
+    emptyText: {
+        color: "#6B5E3D",
+        fontSize: 15,
+        lineHeight: 22,
     },
 });
