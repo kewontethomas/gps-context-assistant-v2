@@ -1,6 +1,6 @@
 import { View, Text, StyleSheet } from "react-native";
 import { router, useFocusEffect } from "expo-router";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { AppScreen } from "@/components/AppScreen";
 import { Card } from "@/components/Card";
@@ -22,6 +22,7 @@ export default function HomeScreen() {
   const [nearbyStatus, setNearbyStatus] = useState(
     "Checking nearby tasks..."
   );
+  const [lastCheckedAt, setLastCheckedAt] = useState("");
 
   async function handleCheckNearbyTasks() {
     setNearbyStatus("Checking current location...");
@@ -74,6 +75,16 @@ export default function HomeScreen() {
     }, [])
   );
 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      handleCheckNearbyTasks();
+    }, 1000 * 60 * 3);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  setLastCheckedAt(new Date().toLocaleTimeString());
+
   return (
     <AppScreen>
       <PageHeader
@@ -107,6 +118,10 @@ export default function HomeScreen() {
         <Text style={styles.sectionTitle}>Nearby Tasks</Text>
 
         <Text style={styles.sectionDescription}>{nearbyStatus}</Text>
+
+        <Text style={styles.lastCheckedText}>
+          Last checked: {lastCheckedAt || "Not checked yet"}
+        </Text>
 
         <View style={styles.buttonWrapper}>
           <PrimaryButton
@@ -272,5 +287,11 @@ const styles = StyleSheet.create({
     color: "#475569",
     fontSize: 15,
     lineHeight: 22,
+  },
+
+  lastCheckedText: {
+    color: "#94A3B8",
+    fontSize: 12,
+    marginTop: 8,
   },
 });
