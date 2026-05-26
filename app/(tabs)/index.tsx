@@ -61,12 +61,15 @@ export default function HomeScreen() {
 
     if (results.length === 0) {
       setNearbyStatus("No nearby tasks found.");
+      setLastCheckedAt(new Date().toLocaleTimeString());
       return;
     }
 
     setNearbyStatus(
       `Found ${results.length} nearby place${results.length === 1 ? "" : "s"}.`
     );
+
+    setLastCheckedAt(new Date().toLocaleTimeString());
   }
 
   useFocusEffect(
@@ -82,8 +85,6 @@ export default function HomeScreen() {
 
     return () => clearInterval(interval);
   }, []);
-
-  setLastCheckedAt(new Date().toLocaleTimeString());
 
   return (
     <AppScreen>
