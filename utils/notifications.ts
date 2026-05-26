@@ -44,3 +44,24 @@ export async function sendTestNotification() {
     trigger: null,
   });
 }
+
+export async function sendNearbyTasksNotification(
+  placeName: string,
+  taskCount: number
+) {
+  const hasPermission = await requestNotificationPermission();
+
+  if (!hasPermission) {
+    console.log("Notification permission denied.");
+    return;
+  }
+
+  await Notifications.scheduleNotificationAsync({
+    content: {
+      title: `You're near ${placeName}`,
+      body: `${taskCount} active task${taskCount === 1 ? "" : "s"} waiting here.`,
+      sound: true,
+    },
+    trigger: null,
+  });
+}
