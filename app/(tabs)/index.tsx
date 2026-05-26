@@ -19,7 +19,6 @@ import {
   calculateDistanceMeters,
   getCurrentLocation,
 } from "@/utils/location";
-
 import {
   sendNearbyTasksNotification,
   sendPlaceEventNotification,
@@ -32,9 +31,7 @@ import {
 
 export default function HomeScreen() {
   const [nearbyResults, setNearbyResults] = useState<NearbyTaskResult[]>([]);
-  const [nearbyStatus, setNearbyStatus] = useState(
-    "Checking nearby tasks..."
-  );
+  const [nearbyStatus, setNearbyStatus] = useState("Checking nearby tasks...");
   const [lastCheckedAt, setLastCheckedAt] = useState("");
 
   async function handleCheckNearbyTasks() {
@@ -44,11 +41,14 @@ export default function HomeScreen() {
 
     if (!currentLocation) {
       setNearbyStatus("Could not access current location.");
+      setLastCheckedAt(new Date().toLocaleTimeString());
       return;
     }
 
     const places = await getSavedPlaces();
     const tasks = await getSavedTasks();
+
+    let sentContextNotification = false;
 
     for (const place of places) {
       if (
@@ -67,22 +67,20 @@ export default function HomeScreen() {
       );
 
       const isInside = distanceMeters <= place.radiusMeters;
-
       const presenceChange = await updatePlacePresence(place.id, isInside);
 
       const activePlaceTasks = tasks.filter(
         (task) => task.placeId === place.id && task.status === "active"
       );
 
-      if (
-        presenceChange.eventType !== "none" &&
-        activePlaceTasks.length > 0
-      ) {
+      if (presenceChange.eventType !== "none" && activePlaceTasks.length > 0) {
         await sendPlaceEventNotification(
           place.name,
           presenceChange.eventType,
           activePlaceTasks.length
         );
+
+        sentContextNotification = true;
       }
 
       if (
@@ -104,12 +102,10 @@ export default function HomeScreen() {
         );
 
         if (canRemind) {
-          await sendStillAtPlaceNotification(
-            place.name,
-            activePlaceTasks.length
-          );
-
+          await sendStillAtPlaceNotification(place.name, activePlaceTasks.length);
           await markStayReminderSent(place.id);
+
+          sentContextNotification = true;
         }
       }
     }
@@ -123,16 +119,18 @@ export default function HomeScreen() {
 
     setNearbyResults(results);
 
-    for (const result of results) {
-      const canNotify = await canNotifyForPlace(result.place.id);
+    if (!sentContextNotification) {
+      for (const result of results) {
+        const canNotify = await canNotifyForPlace(result.place.id);
 
-      if (canNotify) {
-        await sendNearbyTasksNotification(
-          result.place.name,
-          result.tasks.length
-        );
+        if (canNotify) {
+          await sendNearbyTasksNotification(
+            result.place.name,
+            result.tasks.length
+          );
 
-        await markPlaceNotified(result.place.id);
+          await markPlaceNotified(result.place.id);
+        }
       }
     }
 
@@ -211,21 +209,21 @@ export default function HomeScreen() {
 
       {nearbyResults.length > 0 && (
         <Card variant="blue">
-          <Text style={styles.nearbyAlertTitle}>
-            You have tasks nearby
-          </Text>
+          <Text style={styles.nearbyAlertTitle}>You have tasks nearby</Text>
 
           <Text style={styles.nearbyAlertText}>
             {nearbyResults.reduce(
               (total, result) => total + result.tasks.length,
               0
-            )} active task
+            )}{" "}
+            active task
             {nearbyResults.reduce(
               (total, result) => total + result.tasks.length,
               0
             ) === 1
               ? ""
-              : "s"} waiting across {nearbyResults.length} nearby place
+              : "s"}{" "}
+            waiting across {nearbyResults.length} nearby place
             {nearbyResults.length === 1 ? "" : "s"}.
           </Text>
         </Card>
@@ -268,7 +266,9 @@ export default function HomeScreen() {
         <Card>
           <Text style={styles.reminderItem}>• Before it’s time to leave</Text>
           <Text style={styles.reminderItem}>• When you arrive</Text>
-          <Text style={styles.reminderItem}>• While you’re there if unfinished</Text>
+          <Text style={styles.reminderItem}>
+            • While you’re there if unfinished
+          </Text>
           <Text style={styles.reminderItem}>
             • When you leave if still incomplete
           </Text>
