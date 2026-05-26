@@ -173,10 +173,6 @@ export default function AddPlaceScreen() {
                     onPress={handleFindCoordinates}
                 />
 
-                <Text style={styles.coordinateStatus}>
-                    {coordinateStatus}
-                </Text>
-
                 <View style={styles.coordinateButtonGap}>
                     <PrimaryButton
                         title="Use Current Location"
@@ -184,6 +180,11 @@ export default function AddPlaceScreen() {
                         onPress={handleUseCurrentLocation}
                     />
                 </View>
+                
+                <Text style={styles.coordinateStatus}>
+                    {coordinateStatus}
+                </Text>
+
             </Card>
 
             <View style={styles.section}>

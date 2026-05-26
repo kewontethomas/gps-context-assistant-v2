@@ -244,11 +244,7 @@ export default function PlaceDetailsScreen() {
                     variant="secondary"
                     onPress={handleFindCoordinates}
                 />
-
-                <Text style={styles.coordinateStatus}>
-                    {coordinateStatus}
-                </Text>
-
+                
                 <View style={styles.coordinateButtonGap}>
                     <PrimaryButton
                         title="Use Current Location"
@@ -256,6 +252,11 @@ export default function PlaceDetailsScreen() {
                         onPress={handleUseCurrentLocation}
                     />
                 </View>
+
+                <Text style={styles.coordinateStatus}>
+                    {coordinateStatus}
+                </Text>
+
 
                 <Text style={styles.fieldLabel}>Detection radius</Text>
 
