@@ -45,6 +45,7 @@ export default function PlaceDetailsScreen() {
     const [coordinateStatus, setCoordinateStatus] = useState(
         "No coordinates found yet."
     );
+    const [radiusMeters, setRadiusMeters] = useState("150");
 
     useFocusEffect(
         useCallback(() => {
@@ -81,6 +82,8 @@ export default function PlaceDetailsScreen() {
                 } else {
                     setCoordinateStatus("No coordinates saved yet.");
                 }
+
+                setRadiusMeters(String(foundPlace.radiusMeters ?? 150));
             }
 
             loadPlace();
@@ -109,6 +112,7 @@ export default function PlaceDetailsScreen() {
             address: address.trim(),
             latitude,
             longitude,
+            radiusMeters: Number(radiusMeters) || 150,
             type: placeType,
             defaultTravelMode: travelMode,
         };
@@ -218,6 +222,21 @@ export default function PlaceDetailsScreen() {
 
                 <Text style={styles.coordinateStatus}>
                     {coordinateStatus}
+                </Text>
+
+                <Text style={styles.fieldLabel}>Detection radius</Text>
+
+                <TextInput
+                    style={styles.input}
+                    placeholder="Example: 150"
+                    placeholderTextColor="#94A3B8"
+                    value={radiusMeters}
+                    onChangeText={setRadiusMeters}
+                    keyboardType="numeric"
+                />
+
+                <Text style={styles.helperText}>
+                    Larger radius = easier to trigger nearby tasks. Try 300–1000 meters for testing.
                 </Text>
             </Card>
 
@@ -397,5 +416,13 @@ const styles = StyleSheet.create({
         fontSize: 13,
         lineHeight: 20,
         marginTop: 12,
+    },
+
+    helperText: {
+        color: colors.softText,
+        fontSize: 13,
+        lineHeight: 19,
+        marginTop: -10,
+        marginBottom: 18,
     },
 });
