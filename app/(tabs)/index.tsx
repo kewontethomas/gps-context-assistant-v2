@@ -98,6 +98,28 @@ export default function HomeScreen() {
         </View>
       </Card>
 
+      {nearbyResults.length > 0 && (
+        <Card variant="blue">
+          <Text style={styles.nearbyAlertTitle}>
+            You have tasks nearby
+          </Text>
+
+          <Text style={styles.nearbyAlertText}>
+            {nearbyResults.reduce(
+              (total, result) => total + result.tasks.length,
+              0
+            )} active task
+            {nearbyResults.reduce(
+              (total, result) => total + result.tasks.length,
+              0
+            ) === 1
+              ? ""
+              : "s"} waiting across {nearbyResults.length} nearby place
+            {nearbyResults.length === 1 ? "" : "s"}.
+          </Text>
+        </Card>
+      )}
+
       {nearbyResults.map((result) => (
         <Card key={result.place.id}>
           <Text style={styles.placeTitle}>
@@ -219,5 +241,18 @@ const styles = StyleSheet.create({
     color: "#334155",
     fontSize: 15,
     lineHeight: 26,
+  },
+
+  nearbyAlertTitle: {
+    color: colors.text,
+    fontSize: 18,
+    fontWeight: "900",
+    marginBottom: 6,
+  },
+
+  nearbyAlertText: {
+    color: "#475569",
+    fontSize: 15,
+    lineHeight: 22,
   },
 });
