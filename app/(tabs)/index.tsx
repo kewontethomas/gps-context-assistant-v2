@@ -12,6 +12,10 @@ import { getSavedTasks } from "@/storage/taskStorage";
 import { getCurrentLocation } from "@/utils/location";
 import { findNearbyTasks, NearbyTaskResult } from "@/utils/nearbyTasks";
 import { sendNearbyTasksNotification } from "@/utils/notifications";
+import {
+  canNotifyForPlace,
+  markPlaceNotified,
+} from "@/utils/notificationCooldowns";
 
 export default function HomeScreen() {
   const [nearbyResults, setNearbyResults] = useState<NearbyTaskResult[]>([]);
@@ -42,10 +46,16 @@ export default function HomeScreen() {
     setNearbyResults(results);
 
     for (const result of results) {
-      await sendNearbyTasksNotification(
-        result.place.name,
-        result.tasks.length
-      );
+      const canNotify = await canNotifyForPlace(result.place.id);
+
+      if (canNotify) {
+        await sendNearbyTasksNotification(
+          result.place.name,
+          result.tasks.length
+        );
+
+        await markPlaceNotified(result.place.id);
+      }
     }
 
     if (results.length === 0) {
