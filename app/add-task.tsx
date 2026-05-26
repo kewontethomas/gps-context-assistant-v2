@@ -17,6 +17,10 @@ import { getSavedPlaces } from "@/storage/placeStorage";
 import { addSavedTask } from "@/storage/taskStorage";
 import { SavedPlace } from "@/types/place";
 import { LocationTask, ReminderProfile, TaskRecurrence } from "@/types/task";
+import {
+  getReminderProfileDescription,
+  getReminderProfileLabel,
+} from "@/utils/reminderProfiles";
 
 const recurrenceOptions: TaskRecurrence[] = [
     "none",
@@ -53,18 +57,6 @@ const reminderOptions = [
         description: "Alert me early enough to finish on time.",
     },
 ];
-
-function getReminderProfileDescription(profile: ReminderProfile) {
-    if (profile === "gentle") {
-        return "Arrival and departure reminders only.";
-    }
-
-    if (profile === "persistent") {
-        return "Arrival, repeated reminders, and departure alerts.";
-    }
-
-    return "Balanced reminders while you are at the place.";
-}
 
 function formatLabel(value: string) {
     if (value === "none") {
@@ -322,7 +314,7 @@ export default function AddTaskScreen() {
                                     selected && styles.reminderProfileTitleSelected,
                                 ]}
                             >
-                                {formatLabel(profile)}
+                                {getReminderProfileLabel(profile)}
                             </Text>
 
                             <Text

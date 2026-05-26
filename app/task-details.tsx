@@ -15,29 +15,16 @@ import {
     undoCompleteTask,
     updateTaskDetails,
 } from "@/storage/taskActions";
+import {
+  getReminderProfileDescription,
+  getReminderProfileLabel,
+} from "@/utils/reminderProfiles";
 
 const reminderProfiles: ReminderProfile[] = [
     "gentle",
     "normal",
     "persistent",
 ];
-
-function formatLabel(value: string) {
-    return value.charAt(0).toUpperCase() + value.slice(1);
-}
-
-function getReminderProfileDescription(profile: ReminderProfile) {
-    if (profile === "gentle") {
-        return "Arrival and departure reminders only.";
-    }
-
-    if (profile === "persistent") {
-        return "Arrival, repeated reminders, and departure alerts.";
-    }
-
-    return "Balanced reminders while you are at the place.";
-}
-
 
 export default function TaskDetailsScreen() {
     const params = useLocalSearchParams<{ taskId?: string }>();
@@ -194,7 +181,7 @@ export default function TaskDetailsScreen() {
                                     selected && styles.reminderProfileTitleSelected,
                                 ]}
                             >
-                                {formatLabel(profile)}
+                                {getReminderProfileLabel(profile)}
                             </Text>
 
                             <Text

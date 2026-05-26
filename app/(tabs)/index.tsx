@@ -28,6 +28,7 @@ import {
   canSendStayReminder,
   markStayReminderSent,
 } from "@/utils/stayReminderCooldowns";
+import { getStrongestReminderProfile } from "@/utils/reminderProfiles";
 
 export default function HomeScreen() {
   const [nearbyResults, setNearbyResults] = useState<NearbyTaskResult[]>([]);
@@ -88,13 +89,8 @@ export default function HomeScreen() {
         presenceChange.eventType === "none" &&
         activePlaceTasks.length > 0
       ) {
-        const strongestProfile = activePlaceTasks.some(
-          (task) => task.reminderProfile === "persistent"
-        )
-          ? "persistent"
-          : activePlaceTasks.some((task) => task.reminderProfile === "normal")
-            ? "normal"
-            : "gentle";
+        const strongestProfile =
+          getStrongestReminderProfile(activePlaceTasks);
 
         const canRemind = await canSendStayReminder(
           place.id,
