@@ -96,3 +96,23 @@ export async function sendPlaceEventNotification(
     trigger: null,
   });
 }
+
+export async function sendStillAtPlaceNotification(
+  placeName: string,
+  taskCount: number
+) {
+  const hasPermission = await requestNotificationPermission();
+
+  if (!hasPermission) {
+    return;
+  }
+
+  await Notifications.scheduleNotificationAsync({
+    content: {
+      title: `Still at ${placeName}`,
+      body: `${taskCount} unfinished task${taskCount === 1 ? "" : "s"} still waiting.`,
+      sound: true,
+    },
+    trigger: null,
+  });
+}

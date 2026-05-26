@@ -23,7 +23,12 @@ import {
 import {
   sendNearbyTasksNotification,
   sendPlaceEventNotification,
+  sendStillAtPlaceNotification,
 } from "@/utils/notifications";
+import {
+  canSendStayReminder,
+  markStayReminderSent,
+} from "@/utils/stayReminderCooldowns";
 
 export default function HomeScreen() {
   const [nearbyResults, setNearbyResults] = useState<NearbyTaskResult[]>([]);
@@ -78,6 +83,34 @@ export default function HomeScreen() {
           presenceChange.eventType,
           activePlaceTasks.length
         );
+      }
+
+      if (
+        presenceChange.currentStatus === "inside" &&
+        presenceChange.eventType === "none" &&
+        activePlaceTasks.length > 0
+      ) {
+        const strongestProfile = activePlaceTasks.some(
+          (task) => task.reminderProfile === "persistent"
+        )
+          ? "persistent"
+          : activePlaceTasks.some((task) => task.reminderProfile === "normal")
+            ? "normal"
+            : "gentle";
+
+        const canRemind = await canSendStayReminder(
+          place.id,
+          strongestProfile
+        );
+
+        if (canRemind) {
+          await sendStillAtPlaceNotification(
+            place.name,
+            activePlaceTasks.length
+          );
+
+          await markStayReminderSent(place.id);
+        }
       }
     }
 
