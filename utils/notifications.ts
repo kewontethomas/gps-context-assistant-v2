@@ -65,3 +65,34 @@ export async function sendNearbyTasksNotification(
     trigger: null,
   });
 }
+
+export async function sendPlaceEventNotification(
+  placeName: string,
+  eventType: "arrival" | "departure",
+  taskCount: number
+) {
+  const hasPermission = await requestNotificationPermission();
+
+  if (!hasPermission) {
+    return;
+  }
+
+  const title =
+    eventType === "arrival"
+      ? `You arrived at ${placeName}`
+      : `You left ${placeName}`;
+
+  const body =
+    eventType === "arrival"
+      ? `${taskCount} active task${taskCount === 1 ? "" : "s"} waiting here.`
+      : `${taskCount} unfinished task${taskCount === 1 ? "" : "s"} still here.`;
+
+  await Notifications.scheduleNotificationAsync({
+    content: {
+      title,
+      body,
+      sound: true,
+    },
+    trigger: null,
+  });
+}

@@ -9,13 +9,21 @@ import { PrimaryButton } from "@/components/PrimaryButton";
 import { colors, typography } from "@/constants/theme";
 import { getSavedPlaces } from "@/storage/placeStorage";
 import { getSavedTasks } from "@/storage/taskStorage";
-import { getCurrentLocation } from "@/utils/location";
 import { findNearbyTasks, NearbyTaskResult } from "@/utils/nearbyTasks";
-import { sendNearbyTasksNotification } from "@/utils/notifications";
 import {
   canNotifyForPlace,
   markPlaceNotified,
 } from "@/utils/notificationCooldowns";
+import { updatePlacePresence } from "@/utils/placePresence";
+import {
+  calculateDistanceMeters,
+  getCurrentLocation,
+} from "@/utils/location";
+
+import {
+  sendNearbyTasksNotification,
+  sendPlaceEventNotification,
+} from "@/utils/notifications";
 
 export default function HomeScreen() {
   const [nearbyResults, setNearbyResults] = useState<NearbyTaskResult[]>([]);
@@ -36,6 +44,42 @@ export default function HomeScreen() {
 
     const places = await getSavedPlaces();
     const tasks = await getSavedTasks();
+
+    for (const place of places) {
+      if (
+        place.archivedAt ||
+        typeof place.latitude !== "number" ||
+        typeof place.longitude !== "number"
+      ) {
+        continue;
+      }
+
+      const distanceMeters = calculateDistanceMeters(
+        currentLocation.latitude,
+        currentLocation.longitude,
+        place.latitude,
+        place.longitude
+      );
+
+      const isInside = distanceMeters <= place.radiusMeters;
+
+      const presenceChange = await updatePlacePresence(place.id, isInside);
+
+      const activePlaceTasks = tasks.filter(
+        (task) => task.placeId === place.id && task.status === "active"
+      );
+
+      if (
+        presenceChange.eventType !== "none" &&
+        activePlaceTasks.length > 0
+      ) {
+        await sendPlaceEventNotification(
+          place.name,
+          presenceChange.eventType,
+          activePlaceTasks.length
+        );
+      }
+    }
 
     const results = findNearbyTasks(
       currentLocation.latitude,
