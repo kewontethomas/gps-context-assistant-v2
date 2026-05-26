@@ -175,6 +175,31 @@ export default function PlaceDetailsScreen() {
         }
     }
 
+    async function handleUseCurrentLocation() {
+        try {
+            setCoordinateStatus("Getting current location...");
+
+            const permission = await Location.requestForegroundPermissionsAsync();
+
+            if (permission.status !== "granted") {
+                setCoordinateStatus("Location permission denied.");
+                return;
+            }
+
+            const currentLocation = await Location.getCurrentPositionAsync({});
+
+            setLatitude(currentLocation.coords.latitude);
+            setLongitude(currentLocation.coords.longitude);
+
+            setCoordinateStatus(
+                `Current location saved:\nLat: ${currentLocation.coords.latitude.toFixed(5)}\nLng: ${currentLocation.coords.longitude.toFixed(5)}`
+            );
+        } catch (error) {
+            console.log(error);
+            setCoordinateStatus("Could not get current location.");
+        }
+    }
+
     return (
         <AppScreen>
             <PageHeader
@@ -223,6 +248,14 @@ export default function PlaceDetailsScreen() {
                 <Text style={styles.coordinateStatus}>
                     {coordinateStatus}
                 </Text>
+
+                <View style={styles.coordinateButtonGap}>
+                    <PrimaryButton
+                        title="Use Current Location"
+                        variant="secondary"
+                        onPress={handleUseCurrentLocation}
+                    />
+                </View>
 
                 <Text style={styles.fieldLabel}>Detection radius</Text>
 
@@ -424,5 +457,9 @@ const styles = StyleSheet.create({
         lineHeight: 19,
         marginTop: -10,
         marginBottom: 18,
+    },
+
+    coordinateButtonGap: {
+        marginTop: 10,
     },
 });
