@@ -1,6 +1,6 @@
 import { View, Text, StyleSheet } from "react-native";
-import { router } from "expo-router";
-import { useState } from "react";
+import { router, useFocusEffect } from "expo-router";
+import { useCallback, useState } from "react";
 
 import { AppScreen } from "@/components/AppScreen";
 import { Card } from "@/components/Card";
@@ -15,7 +15,7 @@ import { findNearbyTasks, NearbyTaskResult } from "@/utils/nearbyTasks";
 export default function HomeScreen() {
   const [nearbyResults, setNearbyResults] = useState<NearbyTaskResult[]>([]);
   const [nearbyStatus, setNearbyStatus] = useState(
-    "Check for nearby active tasks."
+    "Checking nearby tasks..."
   );
 
   async function handleCheckNearbyTasks() {
@@ -49,6 +49,12 @@ export default function HomeScreen() {
       `Found ${results.length} nearby place${results.length === 1 ? "" : "s"}.`
     );
   }
+
+  useFocusEffect(
+    useCallback(() => {
+      handleCheckNearbyTasks();
+    }, [])
+  );
 
   return (
     <AppScreen>
