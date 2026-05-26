@@ -1,5 +1,5 @@
 import { View, Text, StyleSheet } from "react-native";
-import * as Location from "expo-location";
+import { router } from "expo-router";
 import { useState } from "react";
 
 import { AppScreen } from "@/components/AppScreen";
@@ -7,31 +7,47 @@ import { Card } from "@/components/Card";
 import { PageHeader } from "@/components/PageHeader";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { colors, typography } from "@/constants/theme";
-import { router } from "expo-router";
+import { getSavedPlaces } from "@/storage/placeStorage";
+import { getSavedTasks } from "@/storage/taskStorage";
+import { getCurrentLocation } from "@/utils/location";
+import { findNearbyTasks, NearbyTaskResult } from "@/utils/nearbyTasks";
 
 export default function HomeScreen() {
-  const [locationStatus, setLocationStatus] = useState(
-    "Location check has not been run yet."
+  const [nearbyResults, setNearbyResults] = useState<NearbyTaskResult[]>([]);
+  const [nearbyStatus, setNearbyStatus] = useState(
+    "Check for nearby active tasks."
   );
 
-  const [latitude, setLatitude] = useState("");
-  const [longitude, setLongitude] = useState("");
+  async function handleCheckNearbyTasks() {
+    setNearbyStatus("Checking current location...");
 
-  async function handleLocationPress() {
-    const permission = await Location.requestForegroundPermissionsAsync();
+    const currentLocation = await getCurrentLocation();
 
-    if (permission.status !== "granted") {
-      setLocationStatus("Location permission was denied.");
-      setLatitude("");
-      setLongitude("");
+    if (!currentLocation) {
+      setNearbyStatus("Could not access current location.");
       return;
     }
 
-    const currentLocation = await Location.getCurrentPositionAsync({});
+    const places = await getSavedPlaces();
+    const tasks = await getSavedTasks();
 
-    setLatitude(currentLocation.coords.latitude.toFixed(5));
-    setLongitude(currentLocation.coords.longitude.toFixed(5));
-    setLocationStatus("Location is working. Arrival reminders can use GPS later.");
+    const results = findNearbyTasks(
+      currentLocation.latitude,
+      currentLocation.longitude,
+      places,
+      tasks
+    );
+
+    setNearbyResults(results);
+
+    if (results.length === 0) {
+      setNearbyStatus("No nearby tasks found.");
+      return;
+    }
+
+    setNearbyStatus(
+      `Found ${results.length} nearby place${results.length === 1 ? "" : "s"}.`
+    );
   }
 
   return (
@@ -47,7 +63,10 @@ export default function HomeScreen() {
 
         <View style={styles.buttonRow}>
           <View style={styles.buttonHalf}>
-            <PrimaryButton title="Add Task" onPress={() => router.push("/add-task")} />
+            <PrimaryButton
+              title="Add Task"
+              onPress={() => router.push("/add-task")}
+            />
           </View>
 
           <View style={styles.buttonHalf}>
@@ -60,6 +79,37 @@ export default function HomeScreen() {
         </View>
       </Card>
 
+      <Card>
+        <Text style={styles.sectionTitle}>Nearby Tasks</Text>
+
+        <Text style={styles.sectionDescription}>{nearbyStatus}</Text>
+
+        <View style={styles.buttonWrapper}>
+          <PrimaryButton
+            title="Check Nearby Tasks"
+            onPress={handleCheckNearbyTasks}
+          />
+        </View>
+      </Card>
+
+      {nearbyResults.map((result) => (
+        <Card key={result.place.id}>
+          <Text style={styles.placeTitle}>
+            {result.place.icon} {result.place.name}
+          </Text>
+
+          <Text style={styles.distanceText}>
+            {Math.round(result.distanceMeters)} meters away
+          </Text>
+
+          {result.tasks.map((task) => (
+            <Text key={task.id} style={styles.taskText}>
+              • {task.title}
+            </Text>
+          ))}
+        </Card>
+      ))}
+
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Today’s Place Tasks</Text>
 
@@ -67,7 +117,8 @@ export default function HomeScreen() {
           <Text style={styles.emptyTitle}>No tasks planned yet</Text>
 
           <Text style={styles.emptyText}>
-            Add a task to a saved place like Work or Home, or create a temporary place for an errand.
+            Add a task to a saved place like Work or Home, or create a temporary
+            place for an errand.
           </Text>
         </Card>
       </View>
@@ -79,30 +130,11 @@ export default function HomeScreen() {
           <Text style={styles.reminderItem}>• Before it’s time to leave</Text>
           <Text style={styles.reminderItem}>• When you arrive</Text>
           <Text style={styles.reminderItem}>• While you’re there if unfinished</Text>
-          <Text style={styles.reminderItem}>• When you leave if still incomplete</Text>
+          <Text style={styles.reminderItem}>
+            • When you leave if still incomplete
+          </Text>
         </Card>
       </View>
-
-      <Card variant="blue">
-        <Text style={styles.gpsTitle}>GPS Test</Text>
-
-        <Text style={styles.gpsText}>
-          {locationStatus}
-        </Text>
-
-        {latitude !== "" && (
-          <View style={styles.coordsBox}>
-            <Text style={styles.coords}>Latitude: {latitude}</Text>
-            <Text style={styles.coords}>Longitude: {longitude}</Text>
-          </View>
-        )}
-
-        <PrimaryButton
-          title="Test Current Location"
-          variant="secondary"
-          onPress={handleLocationPress}
-        />
-      </Card>
     </AppScreen>
   );
 }
@@ -124,6 +156,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 
+  buttonWrapper: {
+    marginTop: 14,
+  },
+
   section: {
     marginBottom: 24,
   },
@@ -131,7 +167,33 @@ const styles = StyleSheet.create({
   sectionTitle: {
     ...typography.sectionTitle,
     color: colors.text,
-    marginBottom: 12,
+    marginBottom: 8,
+  },
+
+  sectionDescription: {
+    color: colors.softText,
+    fontSize: 14,
+    lineHeight: 20,
+  },
+
+  placeTitle: {
+    color: colors.text,
+    fontSize: 17,
+    fontWeight: "900",
+    marginBottom: 8,
+  },
+
+  distanceText: {
+    color: colors.primary,
+    fontSize: 13,
+    fontWeight: "700",
+    marginBottom: 10,
+  },
+
+  taskText: {
+    color: colors.softText,
+    fontSize: 14,
+    lineHeight: 22,
   },
 
   emptyTitle: {
@@ -151,32 +213,5 @@ const styles = StyleSheet.create({
     color: "#334155",
     fontSize: 15,
     lineHeight: 26,
-  },
-
-  gpsTitle: {
-    color: colors.text,
-    fontSize: 16,
-    fontWeight: "900",
-    marginBottom: 8,
-  },
-
-  gpsText: {
-    color: "#475569",
-    fontSize: 15,
-    lineHeight: 22,
-    marginBottom: 14,
-  },
-
-  coordsBox: {
-    backgroundColor: colors.surface,
-    borderRadius: 16,
-    padding: 14,
-    marginBottom: 14,
-  },
-
-  coords: {
-    color: "#334155",
-    fontSize: 14,
-    lineHeight: 22,
   },
 });
