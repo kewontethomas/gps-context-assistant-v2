@@ -59,6 +59,11 @@ export default function SettingsScreen() {
     const [defaultRadiusMeters, setDefaultRadiusMeters] = useState("150");
     const [notificationCooldownMinutes, setNotificationCooldownMinutes] =
         useState("15");
+    const [normalStayReminderMinutes, setNormalStayReminderMinutes] =
+        useState("30");
+
+    const [persistentStayReminderMinutes, setPersistentStayReminderMinutes] =
+        useState("15");
 
     useFocusEffect(
         useCallback(() => {
@@ -67,6 +72,10 @@ export default function SettingsScreen() {
                 setDefaultRadiusMeters(String(settings.defaultRadiusMeters));
                 setNotificationCooldownMinutes(
                     String(settings.notificationCooldownMinutes)
+                );
+                setNormalStayReminderMinutes(String(settings.normalStayReminderMinutes));
+                setPersistentStayReminderMinutes(
+                    String(settings.persistentStayReminderMinutes)
                 );
             }
 
@@ -84,6 +93,15 @@ export default function SettingsScreen() {
         await updateAppSettings({
             notificationCooldownMinutes:
                 Number(notificationCooldownMinutes) || 15,
+        });
+    }
+
+    async function handleSaveStayReminderIntervals() {
+        await updateAppSettings({
+            normalStayReminderMinutes:
+                Number(normalStayReminderMinutes) || 30,
+            persistentStayReminderMinutes:
+                Number(persistentStayReminderMinutes) || 15,
         });
     }
 
@@ -158,6 +176,44 @@ export default function SettingsScreen() {
                 </View>
             </Card>
 
+            <Card>
+                <Text style={styles.settingTitle}>Stay reminder intervals</Text>
+
+                <Text style={styles.settingValue}>
+                    Controls how often the app reminds you while you are still at a
+                    place with unfinished tasks.
+                </Text>
+
+                <Text style={styles.inputLabel}>Normal reminders</Text>
+
+                <TextInput
+                    style={styles.input}
+                    placeholder="Example: 30"
+                    placeholderTextColor="#94A3B8"
+                    value={normalStayReminderMinutes}
+                    onChangeText={setNormalStayReminderMinutes}
+                    keyboardType="numeric"
+                />
+
+                <Text style={styles.inputLabel}>Persistent reminders</Text>
+
+                <TextInput
+                    style={styles.input}
+                    placeholder="Example: 15"
+                    placeholderTextColor="#94A3B8"
+                    value={persistentStayReminderMinutes}
+                    onChangeText={setPersistentStayReminderMinutes}
+                    keyboardType="numeric"
+                />
+
+                <View style={styles.buttonWrapper}>
+                    <PrimaryButton
+                        title="Save Stay Intervals"
+                        onPress={handleSaveStayReminderIntervals}
+                    />
+                </View>
+            </Card>
+
             {settings.map((setting) => (
                 <SettingCard
                     key={setting.title}
@@ -198,6 +254,13 @@ const styles = StyleSheet.create({
         fontSize: 15,
         fontWeight: "700",
         color: colors.text,
+        marginTop: 14,
+    },
+
+    inputLabel: {
+        color: colors.text,
+        fontSize: 13,
+        fontWeight: "900",
         marginTop: 14,
     },
 });

@@ -1,4 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+
+import { getAppSettings } from "@/storage/appSettingsStorage";
 import { ReminderProfile } from "@/types/task";
 
 const STAY_REMINDER_KEY = "gps-context-assistant:stay-reminder-cooldowns";
@@ -7,13 +9,15 @@ type StayReminderCooldownMap = {
   [placeId: string]: string;
 };
 
-function getCooldownMinutes(profile: ReminderProfile) {
+async function getCooldownMinutes(profile: ReminderProfile) {
+  const settings = await getAppSettings();
+
   if (profile === "persistent") {
-    return 1;
+    return settings.persistentStayReminderMinutes;
   }
 
   if (profile === "normal") {
-    return 30;
+    return settings.normalStayReminderMinutes;
   }
 
   return Number.POSITIVE_INFINITY;
@@ -52,8 +56,9 @@ export async function canSendStayReminder(
   const now = Date.now();
 
   const minutesSinceLastReminder = (now - lastTime) / 1000 / 60;
+  const cooldownMinutes = await getCooldownMinutes(profile);
 
-  return minutesSinceLastReminder >= getCooldownMinutes(profile);
+  return minutesSinceLastReminder >= cooldownMinutes;
 }
 
 export async function markStayReminderSent(placeId: string) {
