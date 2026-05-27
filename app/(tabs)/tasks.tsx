@@ -91,6 +91,70 @@ function TaskCard({
     );
 }
 
+type TaskSectionProps = {
+    title: string;
+    emptyTitle: string;
+    emptyMessage: string;
+    tasks: LocationTask[];
+    places: SavedPlace[];
+    onComplete: (task: LocationTask) => void;
+    onLater: (task: LocationTask) => void;
+    onDelete: (task: LocationTask) => void;
+    onOpen: (task: LocationTask) => void;
+};
+
+function TaskSection({
+    title,
+    emptyTitle,
+    emptyMessage,
+    tasks,
+    places,
+    onComplete,
+    onLater,
+    onDelete,
+    onOpen,
+}: TaskSectionProps) {
+    function getPlaceName(placeId: string) {
+        const place = places.find((savedPlace) => savedPlace.id === placeId);
+
+        if (!place) {
+            return "Unknown place";
+        }
+
+        return place.name;
+    }
+
+    return (
+        <View style={styles.section}>
+            <Text style={styles.sectionTitle}>{title}</Text>
+
+            {tasks.length === 0 ? (
+                <Card variant="yellow">
+                    <Text style={styles.emptyTitle}>{emptyTitle}</Text>
+                    <Text style={styles.emptyText}>{emptyMessage}</Text>
+                </Card>
+            ) : (
+                tasks.map((task) => (
+                    <TaskCard
+                        key={task.id}
+                        task={task}
+                        place={getPlaceName(task.placeId)}
+                        time={
+                            task.dueDate && task.dueTime
+                                ? `${task.dueDate} • ${task.dueTime}`
+                                : task.dueDate ?? task.dueTime ?? "No time set"
+                        }
+                        onComplete={() => onComplete(task)}
+                        onLater={() => onLater(task)}
+                        onDelete={() => onDelete(task)}
+                        onOpen={() => onOpen(task)}
+                    />
+                ))
+            )}
+        </View>
+    );
+}
+
 export default function TasksScreen() {
     const [tasks, setTasks] = useState<LocationTask[]>([]);
     const [places, setPlaces] = useState<SavedPlace[]>([]);
@@ -113,6 +177,22 @@ export default function TasksScreen() {
 
     const activeTasks = tasks.filter((task) => task.status === "active");
     const completedTasks = tasks.filter((task) => task.status === "completed");
+
+    const dueTodayTasks = activeTasks.filter((task) => {
+        return task.dueDate === "Today" || task.dueDate === "Tonight";
+    });
+
+    const nextArrivalTasks = activeTasks.filter((task) => {
+        return task.dueDate === "Next arrival";
+    });
+
+    const upcomingTasks = activeTasks.filter((task) => {
+        return (
+            task.dueDate !== "Today" &&
+            task.dueDate !== "Tonight" &&
+            task.dueDate !== "Next arrival"
+        );
+    });
 
     function getPlaceName(placeId: string) {
         const place = places.find((savedPlace) => savedPlace.id === placeId);
@@ -186,35 +266,41 @@ export default function TasksScreen() {
                 />
             </View>
 
-            <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Active Tasks</Text>
+            <TaskSection
+                title="Due Today"
+                emptyTitle="Nothing due today"
+                emptyMessage="Tasks due today or tonight will appear here."
+                tasks={dueTodayTasks}
+                places={places}
+                onComplete={handleCompleteTask}
+                onLater={handleOpenLaterOptions}
+                onDelete={handleDeleteTask}
+                onOpen={(task) => router.push(`/task-details?taskId=${task.id}`)}
+            />
 
-                {activeTasks.length === 0 ? (
-                    <Card variant="yellow">
-                        <Text style={styles.emptyTitle}>No active tasks yet</Text>
-                        <Text style={styles.emptyText}>
-                            Add a task to a saved place so the app can remind you when it matters.
-                        </Text>
-                    </Card>
-                ) : (
-                    activeTasks.map((task) => (
-                        <TaskCard
-                            key={task.id}
-                            task={task}
-                            place={getPlaceName(task.placeId)}
-                            time={
-                                task.dueDate && task.dueTime
-                                    ? `${task.dueDate} • ${task.dueTime}`
-                                    : task.dueDate ?? task.dueTime ?? "No time set"
-                            }
-                            onComplete={() => handleCompleteTask(task)}
-                            onLater={() => handleOpenLaterOptions(task)}
-                            onDelete={() => handleDeleteTask(task)}
-                            onOpen={() => router.push(`/task-details?taskId=${task.id}`)}
-                        />
-                    ))
-                )}
-            </View>
+            <TaskSection
+                title="Next Arrival"
+                emptyTitle="No next-arrival tasks"
+                emptyMessage="Tasks waiting for the next time you arrive at a place will appear here."
+                tasks={nextArrivalTasks}
+                places={places}
+                onComplete={handleCompleteTask}
+                onLater={handleOpenLaterOptions}
+                onDelete={handleDeleteTask}
+                onOpen={(task) => router.push(`/task-details?taskId=${task.id}`)}
+            />
+
+            <TaskSection
+                title="Upcoming"
+                emptyTitle="No upcoming tasks"
+                emptyMessage="Future tasks and moved tasks will appear here."
+                tasks={upcomingTasks}
+                places={places}
+                onComplete={handleCompleteTask}
+                onLater={handleOpenLaterOptions}
+                onDelete={handleDeleteTask}
+                onOpen={(task) => router.push(`/task-details?taskId=${task.id}`)}
+            />
 
             <View style={styles.section}>
                 <Text style={styles.sectionTitle}>Completed Tasks</Text>
