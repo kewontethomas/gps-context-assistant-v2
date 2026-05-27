@@ -18,8 +18,8 @@ import { addSavedTask } from "@/storage/taskStorage";
 import { SavedPlace } from "@/types/place";
 import { LocationTask, ReminderProfile, TaskRecurrence } from "@/types/task";
 import {
-  getReminderProfileDescription,
-  getReminderProfileLabel,
+    getReminderProfileDescription,
+    getReminderProfileLabel,
 } from "@/utils/reminderProfiles";
 
 const recurrenceOptions: TaskRecurrence[] = [
@@ -33,6 +33,21 @@ const reminderProfiles: ReminderProfile[] = [
     "gentle",
     "normal",
     "persistent",
+];
+
+const dueDateOptions = [
+    "Today",
+    "Tomorrow",
+    "Next arrival",
+    "Future date",
+];
+
+const dueTimeOptions = [
+    "No time",
+    "Morning",
+    "Afternoon",
+    "Evening",
+    "Tonight",
 ];
 
 const reminderOptions = [
@@ -72,8 +87,8 @@ export default function AddTaskScreen() {
     const [taskTitle, setTaskTitle] = useState("");
     const [notes, setNotes] = useState("");
     const [selectedPlaceId, setSelectedPlaceId] = useState("");
-    const [dueDate, setDueDate] = useState("");
-    const [dueTime, setDueTime] = useState("");
+    const [dueDate, setDueDate] = useState("Today");
+    const [dueTime, setDueTime] = useState("No time");
     const [recurrence, setRecurrence] = useState<TaskRecurrence>("none");
 
     const [arrivalReminder, setArrivalReminder] = useState(true);
@@ -136,8 +151,8 @@ export default function AddTaskScreen() {
 
             status: "active",
 
-            dueDate: dueDate.trim() || undefined,
-            dueTime: dueTime.trim() || undefined,
+            dueDate: dueDate === "Future date" ? undefined : dueDate,
+            dueTime: dueTime === "No time" ? undefined : dueTime,
             arriveByTime: undefined,
 
             recurrence,
@@ -244,23 +259,61 @@ export default function AddTaskScreen() {
             <Card style={styles.formCard}>
                 <Text style={styles.fieldLabel}>Due date</Text>
 
-                <TextInput
-                    style={[styles.input, styles.dueDateInput]}
-                    placeholder="Example: Today, Tomorrow, May 30"
-                    placeholderTextColor="#94A3B8"
-                    value={dueDate}
-                    onChangeText={setDueDate}
-                />
+                <View style={styles.optionGrid}>
+                    {dueDateOptions.map((option) => {
+                        const selected = dueDate === option;
 
-                <Text style={styles.fieldLabel}>Due time</Text>
+                        return (
+                            <Pressable
+                                key={option}
+                                onPress={() => setDueDate(option)}
+                                style={[
+                                    styles.optionPill,
+                                    selected && styles.optionPillSelected,
+                                ]}
+                            >
+                                <Text
+                                    style={[
+                                        styles.optionText,
+                                        selected && styles.optionTextSelected,
+                                    ]}
+                                >
+                                    {option}
+                                </Text>
+                            </Pressable>
+                        );
+                    })}
+                </View>
 
-                <TextInput
-                    style={styles.input}
-                    placeholder="Example: 8:00 AM"
-                    placeholderTextColor="#94A3B8"
-                    value={dueTime}
-                    onChangeText={setDueTime}
-                />
+                <Text style={[styles.fieldLabel, styles.fieldLabelSpacing]}>
+                    Due time
+                </Text>
+
+                <View style={styles.optionGrid}>
+                    {dueTimeOptions.map((option) => {
+                        const selected = dueTime === option;
+
+                        return (
+                            <Pressable
+                                key={option}
+                                onPress={() => setDueTime(option)}
+                                style={[
+                                    styles.optionPill,
+                                    selected && styles.optionPillSelected,
+                                ]}
+                            >
+                                <Text
+                                    style={[
+                                        styles.optionText,
+                                        selected && styles.optionTextSelected,
+                                    ]}
+                                >
+                                    {option}
+                                </Text>
+                            </Pressable>
+                        );
+                    })}
+                </View>
             </Card>
 
             <View style={styles.section}>
@@ -570,37 +623,41 @@ const styles = StyleSheet.create({
     },
 
     reminderProfileCard: {
-  backgroundColor: "#FFFFFF",
-  borderRadius: 24,
-  padding: 18,
-  borderColor: colors.border,
-  borderWidth: 1,
-  marginBottom: 12,
-},
+        backgroundColor: "#FFFFFF",
+        borderRadius: 24,
+        padding: 18,
+        borderColor: colors.border,
+        borderWidth: 1,
+        marginBottom: 12,
+    },
 
-reminderProfileCardSelected: {
-  borderColor: colors.primary,
-  backgroundColor: "#EFF6FF",
-},
+    reminderProfileCardSelected: {
+        borderColor: colors.primary,
+        backgroundColor: "#EFF6FF",
+    },
 
-reminderProfileTitle: {
-  color: colors.text,
-  fontSize: 16,
-  fontWeight: "900",
-  marginBottom: 4,
-},
+    reminderProfileTitle: {
+        color: colors.text,
+        fontSize: 16,
+        fontWeight: "900",
+        marginBottom: 4,
+    },
 
-reminderProfileTitleSelected: {
-  color: colors.primary,
-},
+    reminderProfileTitleSelected: {
+        color: colors.primary,
+    },
 
-reminderProfileDescription: {
-  color: colors.softText,
-  fontSize: 13,
-  lineHeight: 19,
-},
+    reminderProfileDescription: {
+        color: colors.softText,
+        fontSize: 13,
+        lineHeight: 19,
+    },
 
-reminderProfileDescriptionSelected: {
-  color: "#475569",
+    reminderProfileDescriptionSelected: {
+        color: "#475569",
+    },
+
+    fieldLabelSpacing: {
+    marginTop: 22,
 },
 });
