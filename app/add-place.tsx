@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import {
     View,
     Text,
@@ -6,7 +6,7 @@ import {
     StyleSheet,
     Pressable,
 } from "react-native";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { addSavedPlace } from "@/storage/placeStorage";
 import { SavedPlace } from "@/types/place";
 
@@ -17,6 +17,7 @@ import { PrimaryButton } from "@/components/PrimaryButton";
 import { colors, typography } from "@/constants/theme";
 import { PlaceType, TravelMode } from "@/types/place";
 import * as Location from "expo-location";
+import { getAppSettings } from "@/storage/appSettingsStorage";
 
 
 const placeTypes: PlaceType[] = ["permanent", "temporary"];
@@ -43,6 +44,18 @@ export default function AddPlaceScreen() {
     const [longitude, setLongitude] = useState<number | undefined>(undefined);
     const [coordinateStatus, setCoordinateStatus] = useState(
         "No coordinates found yet."
+    );
+    const [defaultRadiusMeters, setDefaultRadiusMeters] = useState(150);
+
+    useFocusEffect(
+        useCallback(() => {
+            async function loadSettings() {
+                const settings = await getAppSettings();
+                setDefaultRadiusMeters(settings.defaultRadiusMeters);
+            }
+
+            loadSettings();
+        }, [])
     );
 
     async function handleFindCoordinates() {
@@ -97,8 +110,7 @@ export default function AddPlaceScreen() {
 
             latitude,
             longitude,
-            radiusMeters: 150,
-
+            radiusMeters: defaultRadiusMeters,
             type: placeType,
             category: "custom",
             icon: placeType === "permanent" ? "📍" : "🧭",
@@ -180,7 +192,7 @@ export default function AddPlaceScreen() {
                         onPress={handleUseCurrentLocation}
                     />
                 </View>
-                
+
                 <Text style={styles.coordinateStatus}>
                     {coordinateStatus}
                 </Text>
