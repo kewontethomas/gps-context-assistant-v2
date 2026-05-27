@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "gps-context-assistant-v2",
+    "name": "GPS Context Assistant",
     "slug": "gps-context-assistant-v2",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -9,9 +9,22 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "GPS Context Assistant uses your location to show tasks connected to places you visit.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "GPS Context Assistant uses background location to remind you about tasks when you arrive at or leave saved places."
+      }
     },
     "android": {
+      "package": "com.kewontethomas.gpscontextassistant",
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_BACKGROUND_LOCATION",
+        "POST_NOTIFICATIONS",
+        "FOREGROUND_SERVICE",
+        "FOREGROUND_SERVICE_LOCATION"
+      ],
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -27,6 +40,22 @@
     },
     "plugins": [
       "expo-router",
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow GPS Context Assistant to use your location to remind you about tasks when you arrive at or leave saved places.",
+          "locationWhenInUsePermission": "Allow GPS Context Assistant to use your location to show tasks connected to places you visit.",
+          "isAndroidBackgroundLocationEnabled": true,
+          "isAndroidForegroundServiceEnabled": true
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "color": "#2563EB",
+          "defaultChannel": "default"
+        }
+      ],
       [
         "expo-splash-screen",
         {
