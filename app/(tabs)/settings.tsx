@@ -1,4 +1,4 @@
-import { Text, StyleSheet, View, TextInput } from "react-native";
+import { Pressable, Text, StyleSheet, View, TextInput } from "react-native";
 
 import { AppScreen } from "@/components/AppScreen";
 import { Card } from "@/components/Card";
@@ -12,6 +12,7 @@ import {
     getAppSettings,
     updateAppSettings,
 } from "@/storage/appSettingsStorage";
+import { TravelMode } from "@/types/place";
 
 const settings = [
     {
@@ -54,6 +55,13 @@ function SettingCard({ title, value }: SettingCardProps) {
     );
 }
 
+const travelModes: TravelMode[] = [
+    "driving",
+    "transit",
+    "walking",
+    "rideshare",
+];
+
 export default function SettingsScreen() {
 
     const [defaultRadiusMeters, setDefaultRadiusMeters] = useState("150");
@@ -61,9 +69,10 @@ export default function SettingsScreen() {
         useState("15");
     const [normalStayReminderMinutes, setNormalStayReminderMinutes] =
         useState("30");
-
     const [persistentStayReminderMinutes, setPersistentStayReminderMinutes] =
         useState("15");
+    const [defaultTravelMode, setDefaultTravelMode] =
+        useState<TravelMode>("driving");
 
     useFocusEffect(
         useCallback(() => {
@@ -102,6 +111,12 @@ export default function SettingsScreen() {
                 Number(normalStayReminderMinutes) || 30,
             persistentStayReminderMinutes:
                 Number(persistentStayReminderMinutes) || 15,
+        });
+    }
+
+    async function handleSaveDefaultTravelMode() {
+        await updateAppSettings({
+            defaultTravelMode,
         });
     }
 
@@ -214,6 +229,47 @@ export default function SettingsScreen() {
                 </View>
             </Card>
 
+            <Card>
+                <Text style={styles.settingTitle}>Default travel mode</Text>
+
+                <Text style={styles.settingValue}>
+                    New places will start with this travel mode unless you change it.
+                </Text>
+
+                <View style={styles.optionGrid}>
+                    {travelModes.map((mode) => {
+                        const selected = defaultTravelMode === mode;
+
+                        return (
+                            <Pressable
+                                key={mode}
+                                onPress={() => setDefaultTravelMode(mode)}
+                                style={[
+                                    styles.optionPill,
+                                    selected && styles.optionPillSelected,
+                                ]}
+                            >
+                                <Text
+                                    style={[
+                                        styles.optionText,
+                                        selected && styles.optionTextSelected,
+                                    ]}
+                                >
+                                    {mode.charAt(0).toUpperCase() + mode.slice(1)}
+                                </Text>
+                            </Pressable>
+                        );
+                    })}
+                </View>
+
+                <View style={styles.buttonWrapper}>
+                    <PrimaryButton
+                        title="Save Travel Mode"
+                        onPress={handleSaveDefaultTravelMode}
+                    />
+                </View>
+            </Card>
+
             {settings.map((setting) => (
                 <SettingCard
                     key={setting.title}
@@ -262,5 +318,36 @@ const styles = StyleSheet.create({
         fontSize: 13,
         fontWeight: "900",
         marginTop: 14,
+    },
+
+    optionGrid: {
+        flexDirection: "row",
+        flexWrap: "wrap",
+        gap: 10,
+        marginTop: 14,
+    },
+
+    optionPill: {
+        backgroundColor: "#F8FAFC",
+        borderColor: colors.border,
+        borderWidth: 1,
+        borderRadius: 999,
+        paddingVertical: 10,
+        paddingHorizontal: 14,
+    },
+
+    optionPillSelected: {
+        backgroundColor: colors.primarySoft,
+        borderColor: colors.primary,
+    },
+
+    optionText: {
+        color: colors.softText,
+        fontSize: 13,
+        fontWeight: "800",
+    },
+
+    optionTextSelected: {
+        color: colors.primary,
     },
 });

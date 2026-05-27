@@ -52,6 +52,7 @@ export default function AddPlaceScreen() {
             async function loadSettings() {
                 const settings = await getAppSettings();
                 setDefaultRadiusMeters(settings.defaultRadiusMeters);
+                setTravelMode(settings.defaultTravelMode);
             }
 
             loadSettings();
