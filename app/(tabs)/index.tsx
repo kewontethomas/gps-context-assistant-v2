@@ -29,6 +29,8 @@ import {
   markStayReminderSent,
 } from "@/utils/stayReminderCooldowns";
 import { getStrongestReminderProfile } from "@/utils/reminderProfiles";
+import { EmptyStateCard } from "@/components/EmptyStateCard";
+import { SectionTitle } from "@/components/SectionTitle";
 
 export default function HomeScreen() {
   const [nearbyResults, setNearbyResults] = useState<NearbyTaskResult[]>([]);
@@ -187,7 +189,7 @@ export default function HomeScreen() {
       </Card>
 
       <Card>
-        <Text style={styles.sectionTitle}>Nearby Tasks</Text>
+        <SectionTitle>Nearby Tasks</SectionTitle>
 
         <Text style={styles.sectionDescription}>{nearbyStatus}</Text>
 
@@ -244,20 +246,16 @@ export default function HomeScreen() {
       ))}
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Today’s Place Tasks</Text>
+        <SectionTitle>Today’s Place Tasks</SectionTitle>
 
-        <Card variant="yellow">
-          <Text style={styles.emptyTitle}>No tasks planned yet</Text>
-
-          <Text style={styles.emptyText}>
-            Add a task to a saved place like Work or Home, or create a temporary
-            place for an errand.
-          </Text>
-        </Card>
+        <EmptyStateCard
+          title="No tasks planned yet"
+          message="Add a task to a saved place like Work or Home, or create a temporary place for an errand."
+        />
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>How reminders will work</Text>
+        <SectionTitle>How reminders will work</SectionTitle>
 
         <Card>
           <Text style={styles.reminderItem}>• Before it’s time to leave</Text>
@@ -299,12 +297,6 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
 
-  sectionTitle: {
-    ...typography.sectionTitle,
-    color: colors.text,
-    marginBottom: 8,
-  },
-
   sectionDescription: {
     color: colors.softText,
     fontSize: 14,
@@ -328,19 +320,6 @@ const styles = StyleSheet.create({
   taskText: {
     color: colors.softText,
     fontSize: 14,
-    lineHeight: 22,
-  },
-
-  emptyTitle: {
-    color: "#4A3B14",
-    fontSize: 16,
-    fontWeight: "900",
-    marginBottom: 6,
-  },
-
-  emptyText: {
-    color: "#6B5E3D",
-    fontSize: 15,
     lineHeight: 22,
   },
 
