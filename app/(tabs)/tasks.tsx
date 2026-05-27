@@ -17,6 +17,8 @@ import {
 import { getSavedTasks } from "@/storage/taskStorage";
 import { SavedPlace } from "@/types/place";
 import { LocationTask } from "@/types/task";
+import { EmptyStateCard } from "@/components/EmptyStateCard";
+import { SectionTitle } from "@/components/SectionTitle";
 
 type TaskCardProps = {
     task: LocationTask;
@@ -123,13 +125,13 @@ function TaskSection({
 
     return (
         <View style={styles.section}>
-            <Text style={styles.sectionTitle}>{title}</Text>
+            <SectionTitle>{title}</SectionTitle>
 
             {tasks.length === 0 ? (
-                <Card variant="yellow">
-                    <Text style={styles.emptyTitle}>{emptyTitle}</Text>
-                    <Text style={styles.emptyText}>{emptyMessage}</Text>
-                </Card>
+                <EmptyStateCard
+                    title={emptyTitle}
+                    message={emptyMessage}
+                />
             ) : (
                 tasks.map((task) => (
                     <TaskCard
@@ -296,14 +298,13 @@ export default function TasksScreen() {
             />
 
             <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Completed Tasks</Text>
+                <SectionTitle>Completed Tasks</SectionTitle>
 
                 {completedTasks.length === 0 ? (
-                    <Card variant="yellow">
-                        <Text style={styles.emptyText}>
-                            Completed tasks will appear here after you finish them.
-                        </Text>
-                    </Card>
+                    <EmptyStateCard
+                        title="No completed tasks yet"
+                        message="Completed tasks will appear here after you finish them."
+                    />
                 ) : (
                     completedTasks.map((task) => (
                         <TaskCard
@@ -405,12 +406,6 @@ const styles = StyleSheet.create({
         marginBottom: 28,
     },
 
-    sectionTitle: {
-        ...typography.sectionTitle,
-        color: colors.text,
-        marginBottom: 12,
-    },
-
     taskHeader: {
         flexDirection: "row",
         justifyContent: "space-between",
@@ -446,12 +441,6 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         gap: 10,
         marginTop: 16,
-    },
-
-    emptyText: {
-        color: "#6B5E3D",
-        fontSize: 15,
-        lineHeight: 22,
     },
 
     actionButton: {
@@ -528,10 +517,4 @@ const styles = StyleSheet.create({
         fontWeight: "800",
     },
 
-    emptyTitle: {
-        color: "#4A3B14",
-        fontSize: 16,
-        fontWeight: "900",
-        marginBottom: 6,
-    },
 });
