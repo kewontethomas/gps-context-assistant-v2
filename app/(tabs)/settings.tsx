@@ -57,12 +57,17 @@ function SettingCard({ title, value }: SettingCardProps) {
 export default function SettingsScreen() {
 
     const [defaultRadiusMeters, setDefaultRadiusMeters] = useState("150");
+    const [notificationCooldownMinutes, setNotificationCooldownMinutes] =
+        useState("15");
 
     useFocusEffect(
         useCallback(() => {
             async function loadSettings() {
                 const settings = await getAppSettings();
                 setDefaultRadiusMeters(String(settings.defaultRadiusMeters));
+                setNotificationCooldownMinutes(
+                    String(settings.notificationCooldownMinutes)
+                );
             }
 
             loadSettings();
@@ -72,6 +77,13 @@ export default function SettingsScreen() {
     async function handleSaveDefaultRadius() {
         await updateAppSettings({
             defaultRadiusMeters: Number(defaultRadiusMeters) || 150,
+        });
+    }
+
+    async function handleSaveNotificationCooldown() {
+        await updateAppSettings({
+            notificationCooldownMinutes:
+                Number(notificationCooldownMinutes) || 15,
         });
     }
 
@@ -117,6 +129,31 @@ export default function SettingsScreen() {
                     <PrimaryButton
                         title="Save Default Radius"
                         onPress={handleSaveDefaultRadius}
+                    />
+                </View>
+            </Card>
+
+            <Card>
+                <Text style={styles.settingTitle}>Notification cooldown</Text>
+
+                <Text style={styles.settingValue}>
+                    Controls how long the app waits before sending another nearby
+                    notification for the same place.
+                </Text>
+
+                <TextInput
+                    style={styles.input}
+                    placeholder="Example: 15"
+                    placeholderTextColor="#94A3B8"
+                    value={notificationCooldownMinutes}
+                    onChangeText={setNotificationCooldownMinutes}
+                    keyboardType="numeric"
+                />
+
+                <View style={styles.buttonWrapper}>
+                    <PrimaryButton
+                        title="Save Cooldown"
+                        onPress={handleSaveNotificationCooldown}
                     />
                 </View>
             </Card>

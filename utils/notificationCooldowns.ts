@@ -1,12 +1,12 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
+import { getAppSettings } from "@/storage/appSettingsStorage";
+
 const COOLDOWN_KEY = "gps-context-assistant:notification-cooldowns";
 
 type CooldownMap = {
   [placeId: string]: string;
 };
-
-const DEFAULT_COOLDOWN_MINUTES = 15;
 
 async function getCooldowns(): Promise<CooldownMap> {
   const storedCooldowns = await AsyncStorage.getItem(COOLDOWN_KEY);
@@ -23,6 +23,9 @@ async function saveCooldowns(cooldowns: CooldownMap) {
 }
 
 export async function canNotifyForPlace(placeId: string) {
+  const settings = await getAppSettings();
+  const cooldownMinutes = settings.notificationCooldownMinutes;
+
   const cooldowns = await getCooldowns();
   const lastNotifiedAt = cooldowns[placeId];
 
@@ -35,7 +38,7 @@ export async function canNotifyForPlace(placeId: string) {
 
   const minutesSinceLastNotification = (now - lastTime) / 1000 / 60;
 
-  return minutesSinceLastNotification >= DEFAULT_COOLDOWN_MINUTES;
+  return minutesSinceLastNotification >= cooldownMinutes;
 }
 
 export async function markPlaceNotified(placeId: string) {
