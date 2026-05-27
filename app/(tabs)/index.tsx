@@ -4,38 +4,43 @@ import { useCallback, useEffect, useState } from "react";
 
 import { AppScreen } from "@/components/AppScreen";
 import { Card } from "@/components/Card";
+import { EmptyStateCard } from "@/components/EmptyStateCard";
 import { PageHeader } from "@/components/PageHeader";
 import { PrimaryButton } from "@/components/PrimaryButton";
+import { SectionTitle } from "@/components/SectionTitle";
 import { colors, typography } from "@/constants/theme";
 import { getSavedPlaces } from "@/storage/placeStorage";
 import { getSavedTasks } from "@/storage/taskStorage";
+import {
+  calculateDistanceMeters,
+  getCurrentLocation,
+} from "@/utils/location";
 import { findNearbyTasks, NearbyTaskResult } from "@/utils/nearbyTasks";
 import {
   canNotifyForPlace,
   markPlaceNotified,
 } from "@/utils/notificationCooldowns";
-import { updatePlacePresence } from "@/utils/placePresence";
-import {
-  calculateDistanceMeters,
-  getCurrentLocation,
-} from "@/utils/location";
 import {
   sendNearbyTasksNotification,
   sendPlaceEventNotification,
   sendStillAtPlaceNotification,
 } from "@/utils/notifications";
+import { updatePlacePresence } from "@/utils/placePresence";
+import { getStrongestReminderProfile } from "@/utils/reminderProfiles";
 import {
   canSendStayReminder,
   markStayReminderSent,
 } from "@/utils/stayReminderCooldowns";
-import { getStrongestReminderProfile } from "@/utils/reminderProfiles";
-import { EmptyStateCard } from "@/components/EmptyStateCard";
-import { SectionTitle } from "@/components/SectionTitle";
 
 export default function HomeScreen() {
   const [nearbyResults, setNearbyResults] = useState<NearbyTaskResult[]>([]);
   const [nearbyStatus, setNearbyStatus] = useState("Checking nearby tasks...");
   const [lastCheckedAt, setLastCheckedAt] = useState("");
+
+  const nearbyTaskCount = nearbyResults.reduce(
+    (total, result) => total + result.tasks.length,
+    0
+  );
 
   async function handleCheckNearbyTasks() {
     setNearbyStatus("Checking current location...");
@@ -163,12 +168,37 @@ export default function HomeScreen() {
     <AppScreen>
       <PageHeader
         label="GPS CONTEXT ASSISTANT"
-        title="Plan tasks by place."
-        subtitle="Create reminders for Home, Work, School, stores, appointments, and temporary stops before you get there."
+        title="Your location-aware task dashboard."
+        subtitle="See what needs your attention based on where you are right now."
       />
 
+      <Card variant={nearbyTaskCount > 0 ? "blue" : undefined}>
+        <Text style={styles.dashboardLabel}>Current context</Text>
+
+        <Text style={styles.dashboardNumber}>
+          {nearbyTaskCount}
+        </Text>
+
+        <Text style={styles.dashboardText}>
+          {nearbyTaskCount === 1
+            ? "active task nearby"
+            : "active tasks nearby"}
+        </Text>
+
+        <Text style={styles.lastCheckedText}>
+          Last checked: {lastCheckedAt || "Not checked yet"}
+        </Text>
+
+        <View style={styles.buttonWrapper}>
+          <PrimaryButton
+            title="Refresh Nearby Tasks"
+            onPress={handleCheckNearbyTasks}
+          />
+        </View>
+      </Card>
+
       <Card>
-        <Text style={styles.cardTitle}>What do you want to set up?</Text>
+        <Text style={styles.cardTitle}>Quick actions</Text>
 
         <View style={styles.buttonRow}>
           <View style={styles.buttonHalf}>
@@ -188,74 +218,41 @@ export default function HomeScreen() {
         </View>
       </Card>
 
-      <Card>
+      <View style={styles.section}>
         <SectionTitle>Nearby Tasks</SectionTitle>
 
-        <Text style={styles.sectionDescription}>{nearbyStatus}</Text>
+        <Card>
+          <Text style={styles.sectionDescription}>{nearbyStatus}</Text>
+        </Card>
 
-        <Text style={styles.lastCheckedText}>
-          Last checked: {lastCheckedAt || "Not checked yet"}
-        </Text>
-
-        <View style={styles.buttonWrapper}>
-          <PrimaryButton
-            title="Check Nearby Tasks"
-            onPress={handleCheckNearbyTasks}
+        {nearbyResults.length === 0 ? (
+          <EmptyStateCard
+            title="Nothing nearby right now"
+            message="When you are close to a saved place with active tasks, they will appear here."
           />
-        </View>
-      </Card>
+        ) : (
+          nearbyResults.map((result) => (
+            <Card key={result.place.id}>
+              <Text style={styles.placeTitle}>
+                {result.place.icon} {result.place.name}
+              </Text>
 
-      {nearbyResults.length > 0 && (
-        <Card variant="blue">
-          <Text style={styles.nearbyAlertTitle}>You have tasks nearby</Text>
+              <Text style={styles.distanceText}>
+                {Math.round(result.distanceMeters)} meters away
+              </Text>
 
-          <Text style={styles.nearbyAlertText}>
-            {nearbyResults.reduce(
-              (total, result) => total + result.tasks.length,
-              0
-            )}{" "}
-            active task
-            {nearbyResults.reduce(
-              (total, result) => total + result.tasks.length,
-              0
-            ) === 1
-              ? ""
-              : "s"}{" "}
-            waiting across {nearbyResults.length} nearby place
-            {nearbyResults.length === 1 ? "" : "s"}.
-          </Text>
-        </Card>
-      )}
-
-      {nearbyResults.map((result) => (
-        <Card key={result.place.id}>
-          <Text style={styles.placeTitle}>
-            {result.place.icon} {result.place.name}
-          </Text>
-
-          <Text style={styles.distanceText}>
-            {Math.round(result.distanceMeters)} meters away
-          </Text>
-
-          {result.tasks.map((task) => (
-            <Text key={task.id} style={styles.taskText}>
-              • {task.title}
-            </Text>
-          ))}
-        </Card>
-      ))}
-
-      <View style={styles.section}>
-        <SectionTitle>Today’s Place Tasks</SectionTitle>
-
-        <EmptyStateCard
-          title="No tasks planned yet"
-          message="Add a task to a saved place like Work or Home, or create a temporary place for an errand."
-        />
+              {result.tasks.map((task) => (
+                <Text key={task.id} style={styles.taskText}>
+                  • {task.title}
+                </Text>
+              ))}
+            </Card>
+          ))
+        )}
       </View>
 
       <View style={styles.section}>
-        <SectionTitle>How reminders will work</SectionTitle>
+        <SectionTitle>How reminders work</SectionTitle>
 
         <Card>
           <Text style={styles.reminderItem}>• Before it’s time to leave</Text>
@@ -273,6 +270,29 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
+  dashboardLabel: {
+    color: colors.primary,
+    fontSize: 13,
+    fontWeight: "900",
+    letterSpacing: 1,
+    textTransform: "uppercase",
+    marginBottom: 8,
+  },
+
+  dashboardNumber: {
+    color: colors.text,
+    fontSize: 52,
+    fontWeight: "900",
+    lineHeight: 58,
+  },
+
+  dashboardText: {
+    color: colors.text,
+    fontSize: 20,
+    fontWeight: "900",
+    marginBottom: 8,
+  },
+
   cardTitle: {
     color: colors.text,
     fontSize: 18,
@@ -327,19 +347,6 @@ const styles = StyleSheet.create({
     color: "#334155",
     fontSize: 15,
     lineHeight: 26,
-  },
-
-  nearbyAlertTitle: {
-    color: colors.text,
-    fontSize: 18,
-    fontWeight: "900",
-    marginBottom: 6,
-  },
-
-  nearbyAlertText: {
-    color: "#475569",
-    fontSize: 15,
-    lineHeight: 22,
   },
 
   lastCheckedText: {
