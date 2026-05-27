@@ -7,17 +7,14 @@ import { Card } from "@/components/Card";
 import { PageHeader } from "@/components/PageHeader";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { colors, typography } from "@/constants/theme";
-import {
-    archiveTemporaryPlaceIfCleared,
-    getSavedPlaces,
-} from "@/storage/placeStorage";
-import { getSavedTasks } from "@/storage/taskStorage";
+import { getSavedPlaces } from "@/storage/placeStorage";
 import {
     completeTask,
     removeTask,
     rescheduleTask,
     undoCompleteTask,
 } from "@/storage/taskActions";
+import { getSavedTasks } from "@/storage/taskStorage";
 import { SavedPlace } from "@/types/place";
 import { LocationTask } from "@/types/task";
 
@@ -179,7 +176,7 @@ export default function TasksScreen() {
     const completedTasks = tasks.filter((task) => task.status === "completed");
 
     const dueTodayTasks = activeTasks.filter((task) => {
-        return task.dueDate === "Today" || task.dueDate === "Tonight";
+        return task.dueDate === "Today";
     });
 
     const nextArrivalTasks = activeTasks.filter((task) => {
@@ -187,11 +184,7 @@ export default function TasksScreen() {
     });
 
     const upcomingTasks = activeTasks.filter((task) => {
-        return (
-            task.dueDate !== "Today" &&
-            task.dueDate !== "Tonight" &&
-            task.dueDate !== "Next arrival"
-        );
+        return task.dueDate !== "Today" && task.dueDate !== "Next arrival";
     });
 
     function getPlaceName(placeId: string) {
