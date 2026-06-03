@@ -24,6 +24,6 @@ const styles = StyleSheet.create({
 
   screen: {
     padding: spacing.screen,
-    paddingBottom: 120,
+    paddingBottom: 130,
   },
 });
