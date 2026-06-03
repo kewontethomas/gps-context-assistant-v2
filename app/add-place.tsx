@@ -17,6 +17,7 @@ import { PrimaryButton } from "@/components/PrimaryButton";
 import { colors, typography } from "@/constants/theme";
 import { PlaceType, TravelMode } from "@/types/place";
 import * as Location from "expo-location";
+import { registerSavedPlaceGeofences } from "@/utils/backgroundGeofencing";
 import { getAppSettings } from "@/storage/appSettingsStorage";
 
 
@@ -122,6 +123,7 @@ export default function AddPlaceScreen() {
         };
 
         await addSavedPlace(newPlace);
+        await registerSavedPlaceGeofences();
 
         router.back();
     }

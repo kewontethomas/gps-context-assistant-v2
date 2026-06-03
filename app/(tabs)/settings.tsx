@@ -14,6 +14,11 @@ import {
 } from "@/storage/appSettingsStorage";
 import { TravelMode } from "@/types/place";
 import { sendTestNotification } from "@/utils/notifications";
+import {
+    isBackgroundGeofencingRegistered,
+    registerSavedPlaceGeofences,
+    stopSavedPlaceGeofences,
+} from "@/utils/backgroundGeofencing";
 
 const travelModes: TravelMode[] = [
     "driving",
@@ -32,6 +37,9 @@ export default function SettingsScreen() {
         useState("15");
     const [defaultTravelMode, setDefaultTravelMode] =
         useState<TravelMode>("driving");
+    const [backgroundStatus, setBackgroundStatus] = useState(
+        "Background geofencing status unknown."
+    );
 
     useFocusEffect(
         useCallback(() => {
@@ -49,6 +57,13 @@ export default function SettingsScreen() {
                     String(settings.persistentStayReminderMinutes)
                 );
                 setDefaultTravelMode(settings.defaultTravelMode);
+
+                const isRegistered = await isBackgroundGeofencingRegistered();
+                setBackgroundStatus(
+                    isRegistered
+                        ? "Background geofencing is active."
+                        : "Background geofencing is not active."
+                );
             }
 
             loadSettings();
@@ -81,6 +96,16 @@ export default function SettingsScreen() {
         await updateAppSettings({
             defaultTravelMode,
         });
+    }
+
+    async function handleEnableBackgroundGeofencing() {
+        const result = await registerSavedPlaceGeofences();
+        setBackgroundStatus(result.message);
+    }
+
+    async function handleDisableBackgroundGeofencing() {
+        const result = await stopSavedPlaceGeofences();
+        setBackgroundStatus(result.message);
     }
 
     return (
@@ -239,6 +264,34 @@ export default function SettingsScreen() {
                 </View>
             </Card>
 
+            <SectionTitle>Background awareness</SectionTitle>
+
+            <Card>
+                <Text style={styles.settingTitle}>Background geofencing</Text>
+
+                <Text style={styles.settingValue}>
+                    Monitor saved places even when the app is not open. This is what
+                    powers real arrival and departure reminders.
+                </Text>
+
+                <Text style={styles.statusText}>{backgroundStatus}</Text>
+
+                <View style={styles.buttonWrapper}>
+                    <PrimaryButton
+                        title="Enable Background Monitoring"
+                        onPress={handleEnableBackgroundGeofencing}
+                    />
+                </View>
+
+                <View style={styles.buttonWrapper}>
+                    <PrimaryButton
+                        title="Stop Background Monitoring"
+                        variant="secondary"
+                        onPress={handleDisableBackgroundGeofencing}
+                    />
+                </View>
+            </Card>
+
             <SectionTitle>System behavior</SectionTitle>
 
             <Card>
@@ -290,6 +343,14 @@ const styles = StyleSheet.create({
         color: colors.text,
         fontSize: 13,
         fontWeight: "900",
+        marginTop: 14,
+    },
+
+    statusText: {
+        color: colors.primary,
+        fontSize: 13,
+        fontWeight: "800",
+        lineHeight: 19,
         marginTop: 14,
     },
 

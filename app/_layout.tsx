@@ -1,6 +1,15 @@
+import { useEffect } from "react";
 import { Stack } from "expo-router";
 
+import { registerSavedPlaceGeofences } from "@/utils/backgroundGeofencing";
+
 export default function RootLayout() {
+  useEffect(() => {
+    registerSavedPlaceGeofences().catch((error) => {
+      console.log("Could not register background geofences:", error);
+    });
+  }, []);
+
   return (
     <Stack>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />

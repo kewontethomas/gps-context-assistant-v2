@@ -15,6 +15,7 @@ import {
 import { getSavedTasks } from "@/storage/taskStorage";
 import { PlaceType, SavedPlace, TravelMode } from "@/types/place";
 import * as Location from "expo-location";
+import { registerSavedPlaceGeofences } from "@/utils/backgroundGeofencing";
 
 const placeTypes: PlaceType[] = ["permanent", "temporary"];
 
@@ -118,6 +119,7 @@ export default function PlaceDetailsScreen() {
         };
 
         await updateSavedPlace(updatedPlace);
+        await registerSavedPlaceGeofences();
 
         router.back();
     }
@@ -141,6 +143,7 @@ export default function PlaceDetailsScreen() {
         }
 
         await deleteSavedPlace(place.id);
+        await registerSavedPlaceGeofences();
 
         router.back();
     }
