@@ -23,6 +23,7 @@ export type ContextNotificationEvent =
   | "departure"
   | "stay"
   | "nearby"
+  | "baseline"
   | "none";
 
 export type ContextNotificationDecision = {
@@ -37,12 +38,31 @@ export type ContextNotificationDecision = {
 export type ContextNotificationResult = {
   nearbyResults: NearbyTaskResult[];
   decisions: ContextNotificationDecision[];
+  startupBaselineSynced: boolean;
 };
+
+let hasCompletedStartupBaseline = false;
 
 function getActiveTasksForPlace(tasks: LocationTask[], placeId: string) {
   return tasks.filter(
     (task) => task.placeId === placeId && task.status === "active"
   );
+}
+
+async function trySendPlaceNotification(
+  placeId: string,
+  sendNotification: () => Promise<void>
+) {
+  const canNotify = await canNotifyForPlace(placeId);
+
+  if (!canNotify) {
+    return false;
+  }
+
+  await sendNotification();
+  await markPlaceNotified(placeId);
+
+  return true;
 }
 
 export async function evaluateContextNotifications(
@@ -51,6 +71,7 @@ export async function evaluateContextNotifications(
   tasks: LocationTask[]
 ): Promise<ContextNotificationResult> {
   const decisions: ContextNotificationDecision[] = [];
+  const isStartupBaseline = !hasCompletedStartupBaseline;
   let sentContextNotification = false;
 
   for (const place of places) {
@@ -70,8 +91,24 @@ export async function evaluateContextNotifications(
     );
 
     const isInside = distanceMeters <= place.radiusMeters;
-    const presenceChange = await updatePlacePresence(place.id, isInside);
+    const presenceChange = await updatePlacePresence(place.id, isInside, {
+      silent: isStartupBaseline,
+    });
+
     const activePlaceTasks = getActiveTasksForPlace(tasks, place.id);
+
+    if (isStartupBaseline) {
+      decisions.push({
+        placeId: place.id,
+        placeName: place.name,
+        eventType: "baseline",
+        taskCount: activePlaceTasks.length,
+        notificationSent: false,
+        reason: "Startup baseline synced silently.",
+      });
+
+      continue;
+    }
 
     if (activePlaceTasks.length === 0) {
       decisions.push({
@@ -85,22 +122,33 @@ export async function evaluateContextNotifications(
       continue;
     }
 
-    if (presenceChange.eventType !== "none") {
-      await sendPlaceEventNotification(
-        place.name,
-        presenceChange.eventType,
-        activePlaceTasks.length
-      );
+    if (
+      presenceChange.eventType === "arrival" ||
+      presenceChange.eventType === "departure"
+    ) {
+      const placeEventType = presenceChange.eventType;
 
-      sentContextNotification = true;
+      const sent = await trySendPlaceNotification(place.id, async () => {
+        await sendPlaceEventNotification(
+          place.name,
+          placeEventType,
+          activePlaceTasks.length
+        );
+      });
+
+      if (sent) {
+        sentContextNotification = true;
+      }
 
       decisions.push({
         placeId: place.id,
         placeName: place.name,
         eventType: presenceChange.eventType,
         taskCount: activePlaceTasks.length,
-        notificationSent: true,
-        reason: `Detected ${presenceChange.eventType}.`,
+        notificationSent: sent,
+        reason: sent
+          ? `Detected ${presenceChange.eventType}.`
+          : `${presenceChange.eventType} detected, but cooldown is active.`,
       });
 
       continue;
@@ -111,18 +159,27 @@ export async function evaluateContextNotifications(
       const canRemind = await canSendStayReminder(place.id, strongestProfile);
 
       if (canRemind) {
-        await sendStillAtPlaceNotification(place.name, activePlaceTasks.length);
-        await markStayReminderSent(place.id);
+        const sent = await trySendPlaceNotification(place.id, async () => {
+          await sendStillAtPlaceNotification(
+            place.name,
+            activePlaceTasks.length
+          );
+        });
 
-        sentContextNotification = true;
+        if (sent) {
+          await markStayReminderSent(place.id);
+          sentContextNotification = true;
+        }
 
         decisions.push({
           placeId: place.id,
           placeName: place.name,
           eventType: "stay",
           taskCount: activePlaceTasks.length,
-          notificationSent: true,
-          reason: `Still inside place with ${strongestProfile} reminder profile.`,
+          notificationSent: sent,
+          reason: sent
+            ? `Still inside place with ${strongestProfile} reminder profile.`
+            : "Stay reminder was ready, but global cooldown is active.",
         });
       } else {
         decisions.push({
@@ -144,7 +201,7 @@ export async function evaluateContextNotifications(
     tasks
   );
 
-  if (!sentContextNotification) {
+  if (!isStartupBaseline && !sentContextNotification) {
     for (const result of nearbyResults) {
       const canNotify = await canNotifyForPlace(result.place.id);
 
@@ -177,5 +234,15 @@ export async function evaluateContextNotifications(
     }
   }
 
-  return { nearbyResults, decisions };
+  hasCompletedStartupBaseline = true;
+
+  return {
+    nearbyResults,
+    decisions,
+    startupBaselineSynced: isStartupBaseline,
+  };
+}
+
+export function resetStartupBaselineForTesting() {
+  hasCompletedStartupBaseline = false;
 }

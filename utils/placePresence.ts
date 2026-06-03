@@ -13,6 +13,11 @@ export type PlacePresenceChange = {
   previousStatus: PlacePresenceStatus;
   currentStatus: PlacePresenceStatus;
   eventType: "arrival" | "departure" | "none";
+  baselineSynced?: boolean;
+};
+
+export type UpdatePlacePresenceOptions = {
+  silent?: boolean;
 };
 
 async function getPresenceMap(): Promise<PlacePresenceMap> {
@@ -31,21 +36,24 @@ async function savePresenceMap(presenceMap: PlacePresenceMap) {
 
 export async function updatePlacePresence(
   placeId: string,
-  isInside: boolean
+  isInside: boolean,
+  options: UpdatePlacePresenceOptions = {}
 ): Promise<PlacePresenceChange> {
   const presenceMap = await getPresenceMap();
 
-  const previousStatus = presenceMap[placeId] ?? "outside";
   const currentStatus: PlacePresenceStatus = isInside ? "inside" : "outside";
+  const previousStatus = presenceMap[placeId] ?? currentStatus;
 
   let eventType: PlacePresenceChange["eventType"] = "none";
 
-  if (previousStatus === "outside" && currentStatus === "inside") {
-    eventType = "arrival";
-  }
+  if (!options.silent) {
+    if (previousStatus === "outside" && currentStatus === "inside") {
+      eventType = "arrival";
+    }
 
-  if (previousStatus === "inside" && currentStatus === "outside") {
-    eventType = "departure";
+    if (previousStatus === "inside" && currentStatus === "outside") {
+      eventType = "departure";
+    }
   }
 
   const updatedPresenceMap: PlacePresenceMap = {
@@ -60,5 +68,13 @@ export async function updatePlacePresence(
     previousStatus,
     currentStatus,
     eventType,
+    baselineSynced: options.silent,
   };
+}
+
+export async function baselinePlacePresence(
+  placeId: string,
+  isInside: boolean
+) {
+  return updatePlacePresence(placeId, isInside, { silent: true });
 }
