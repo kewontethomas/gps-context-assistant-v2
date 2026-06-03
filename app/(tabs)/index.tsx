@@ -11,26 +11,9 @@ import { SectionTitle } from "@/components/SectionTitle";
 import { colors, typography } from "@/constants/theme";
 import { getSavedPlaces } from "@/storage/placeStorage";
 import { getSavedTasks } from "@/storage/taskStorage";
-import {
-  calculateDistanceMeters,
-  getCurrentLocation,
-} from "@/utils/location";
-import { findNearbyTasks, NearbyTaskResult } from "@/utils/nearbyTasks";
-import {
-  canNotifyForPlace,
-  markPlaceNotified,
-} from "@/utils/notificationCooldowns";
-import {
-  sendNearbyTasksNotification,
-  sendPlaceEventNotification,
-  sendStillAtPlaceNotification,
-} from "@/utils/notifications";
-import { updatePlacePresence } from "@/utils/placePresence";
-import { getStrongestReminderProfile } from "@/utils/reminderProfiles";
-import {
-  canSendStayReminder,
-  markStayReminderSent,
-} from "@/utils/stayReminderCooldowns";
+import { getCurrentLocation } from "@/utils/location";
+import { NearbyTaskResult } from "@/utils/nearbyTasks";
+import { evaluateContextNotifications } from "@/utils/contextNotificationEngine";
 
 export default function HomeScreen() {
   const [nearbyResults, setNearbyResults] = useState<NearbyTaskResult[]>([]);
@@ -56,95 +39,24 @@ export default function HomeScreen() {
     const places = await getSavedPlaces();
     const tasks = await getSavedTasks();
 
-    let sentContextNotification = false;
-
-    for (const place of places) {
-      if (
-        place.archivedAt ||
-        typeof place.latitude !== "number" ||
-        typeof place.longitude !== "number"
-      ) {
-        continue;
-      }
-
-      const distanceMeters = calculateDistanceMeters(
-        currentLocation.latitude,
-        currentLocation.longitude,
-        place.latitude,
-        place.longitude
-      );
-
-      const isInside = distanceMeters <= place.radiusMeters;
-      const presenceChange = await updatePlacePresence(place.id, isInside);
-
-      const activePlaceTasks = tasks.filter(
-        (task) => task.placeId === place.id && task.status === "active"
-      );
-
-      if (presenceChange.eventType !== "none" && activePlaceTasks.length > 0) {
-        await sendPlaceEventNotification(
-          place.name,
-          presenceChange.eventType,
-          activePlaceTasks.length
-        );
-
-        sentContextNotification = true;
-      }
-
-      if (
-        presenceChange.currentStatus === "inside" &&
-        presenceChange.eventType === "none" &&
-        activePlaceTasks.length > 0
-      ) {
-        const strongestProfile =
-          getStrongestReminderProfile(activePlaceTasks);
-
-        const canRemind = await canSendStayReminder(
-          place.id,
-          strongestProfile
-        );
-
-        if (canRemind) {
-          await sendStillAtPlaceNotification(place.name, activePlaceTasks.length);
-          await markStayReminderSent(place.id);
-
-          sentContextNotification = true;
-        }
-      }
-    }
-
-    const results = findNearbyTasks(
-      currentLocation.latitude,
-      currentLocation.longitude,
+    const contextResult = await evaluateContextNotifications(
+      currentLocation,
       places,
       tasks
     );
 
-    setNearbyResults(results);
+    setNearbyResults(contextResult.nearbyResults);
 
-    if (!sentContextNotification) {
-      for (const result of results) {
-        const canNotify = await canNotifyForPlace(result.place.id);
-
-        if (canNotify) {
-          await sendNearbyTasksNotification(
-            result.place.name,
-            result.tasks.length
-          );
-
-          await markPlaceNotified(result.place.id);
-        }
-      }
-    }
-
-    if (results.length === 0) {
+    if (contextResult.nearbyResults.length === 0) {
       setNearbyStatus("No nearby tasks found.");
       setLastCheckedAt(new Date().toLocaleTimeString());
       return;
     }
 
     setNearbyStatus(
-      `Found ${results.length} nearby place${results.length === 1 ? "" : "s"}.`
+      `Found ${contextResult.nearbyResults.length} nearby place${
+        contextResult.nearbyResults.length === 1 ? "" : "s"
+      }.`
     );
 
     setLastCheckedAt(new Date().toLocaleTimeString());

@@ -1,6 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { locationTasks as mockTasks } from "@/data/tasks";
 import { LocationTask } from "@/types/task";
+import { migrateTasks } from "@/utils/taskMigration";
 
 const TASKS_KEY = "gps-context-assistant:tasks";
 
@@ -8,10 +9,18 @@ export async function getSavedTasks(): Promise<LocationTask[]> {
   const storedTasks = await AsyncStorage.getItem(TASKS_KEY);
 
   if (!storedTasks) {
-    return mockTasks;
+    const migration = migrateTasks(mockTasks);
+    return migration.tasks;
   }
 
-  return JSON.parse(storedTasks);
+  const parsedTasks = JSON.parse(storedTasks);
+  const migration = migrateTasks(parsedTasks);
+
+  if (migration.changed) {
+    await saveTasks(migration.tasks);
+  }
+
+  return migration.tasks;
 }
 
 export async function saveTasks(tasks: LocationTask[]) {
