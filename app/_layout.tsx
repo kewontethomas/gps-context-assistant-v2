@@ -32,6 +32,13 @@ export default function RootLayout() {
           headerShown: false,
         }}
       />
+
+      <Stack.Screen
+        name="fieldseed-inbox"
+        options={{
+          headerShown: false,
+        }}
+      />
     </Stack>
   );
 }

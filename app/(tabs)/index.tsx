@@ -128,6 +128,14 @@ export default function HomeScreen() {
             />
           </View>
         </View>
+
+        <View style={styles.buttonWrapper}>
+          <PrimaryButton
+            title="FieldSeed Inbox"
+            variant="secondary"
+            onPress={() => router.push("/fieldseed-inbox")}
+          />
+        </View>
       </Card>
 
       <View style={styles.section}>
