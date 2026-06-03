@@ -11,12 +11,16 @@ import { SectionTitle } from "@/components/SectionTitle";
 import { colors, typography } from "@/constants/theme";
 import { getSavedPlaces } from "@/storage/placeStorage";
 import { getSavedTasks } from "@/storage/taskStorage";
+import { LocationTask } from "@/types/task";
 import { getCurrentLocation } from "@/utils/location";
 import { NearbyTaskResult } from "@/utils/nearbyTasks";
 import { evaluateContextNotifications } from "@/utils/contextNotificationEngine";
+import { getTaskPriorityLabel, getTaskSourceLabel } from "@/utils/taskMetadata";
+import { getWhatMattersNow, WhatMattersNowItem } from "@/utils/whatMattersNowEngine";
 
 export default function HomeScreen() {
   const [nearbyResults, setNearbyResults] = useState<NearbyTaskResult[]>([]);
+  const [whatMattersNow, setWhatMattersNow] = useState<WhatMattersNowItem[]>([]);
   const [nearbyStatus, setNearbyStatus] = useState("Checking nearby tasks...");
   const [lastCheckedAt, setLastCheckedAt] = useState("");
 
@@ -24,6 +28,16 @@ export default function HomeScreen() {
     (total, result) => total + result.tasks.length,
     0
   );
+
+  function getTaskPlaceLabel(task: LocationTask) {
+    const matchedItem = whatMattersNow.find((item) => item.task.id === task.id);
+
+    if (!matchedItem?.place) {
+      return "Unknown place";
+    }
+
+    return matchedItem.place.name;
+  }
 
   async function handleCheckNearbyTasks() {
     setNearbyStatus("Checking current location...");
@@ -46,6 +60,9 @@ export default function HomeScreen() {
     );
 
     setNearbyResults(contextResult.nearbyResults);
+    setWhatMattersNow(
+      getWhatMattersNow(tasks, places, contextResult.nearbyResults)
+    );
 
     if (contextResult.nearbyResults.length === 0) {
       setNearbyStatus("No nearby tasks found.");
@@ -108,6 +125,37 @@ export default function HomeScreen() {
           />
         </View>
       </Card>
+
+      <View style={styles.section}>
+        <SectionTitle>What Matters Now</SectionTitle>
+
+        {whatMattersNow.length === 0 ? (
+          <EmptyStateCard
+            title="No active priorities yet"
+            message="Create tasks or accept FieldSeed tasks to see smart recommendations here."
+          />
+        ) : (
+          whatMattersNow.map((item, index) => (
+            <Card key={item.task.id} variant={index === 0 ? "blue" : undefined}>
+              <Text style={styles.recommendationRank}>
+                Recommendation #{index + 1}
+              </Text>
+
+              <Text style={styles.recommendationTitle}>
+                {item.task.title}
+              </Text>
+
+              <Text style={styles.recommendationMeta}>
+                {getTaskPlaceLabel(item.task)} • {getTaskPriorityLabel(item.task.priority)} • {getTaskSourceLabel(item.task.source)}
+              </Text>
+
+              <Text style={styles.recommendationReason}>
+                Why now: {item.reasons.join(" • ")}
+              </Text>
+            </Card>
+          ))
+        )}
+      </View>
 
       <Card>
         <Text style={styles.cardTitle}>Quick actions</Text>
@@ -211,6 +259,35 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "900",
     marginBottom: 8,
+  },
+
+  recommendationRank: {
+    color: colors.primary,
+    fontSize: 12,
+    fontWeight: "900",
+    letterSpacing: 0.8,
+    textTransform: "uppercase",
+    marginBottom: 8,
+  },
+
+  recommendationTitle: {
+    color: colors.text,
+    fontSize: 18,
+    fontWeight: "900",
+    marginBottom: 6,
+  },
+
+  recommendationMeta: {
+    color: colors.softText,
+    fontSize: 13,
+    fontWeight: "800",
+    marginBottom: 8,
+  },
+
+  recommendationReason: {
+    color: "#475569",
+    fontSize: 14,
+    lineHeight: 21,
   },
 
   cardTitle: {
