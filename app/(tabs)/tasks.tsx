@@ -19,6 +19,12 @@ import { SavedPlace } from "@/types/place";
 import { LocationTask } from "@/types/task";
 import { EmptyStateCard } from "@/components/EmptyStateCard";
 import { SectionTitle } from "@/components/SectionTitle";
+import {
+    getTaskContextLabel,
+    getTaskPriorityLabel,
+    getTaskSourceLabel,
+    sortTasksByPriority,
+} from "@/utils/taskMetadata";
 
 type TaskCardProps = {
     task: LocationTask;
@@ -53,6 +59,12 @@ function TaskCard({
                 <Text style={styles.taskMeta}>When: {time}</Text>
                 <Text style={styles.taskMeta}>Travel: {task.travelMode}</Text>
                 <Text style={styles.taskMeta}>Reminder: {task.reminderProfile ?? "normal"}</Text>
+                <Text style={styles.taskMeta}>
+                    Priority: {getTaskPriorityLabel(task.priority)} • Source: {getTaskSourceLabel(task.source)}
+                </Text>
+                <Text style={styles.taskMeta}>
+                    Context: {getTaskContextLabel(task.contextType)}
+                </Text>
             </Pressable>
 
             <View style={styles.taskActions}>
@@ -133,7 +145,7 @@ function TaskSection({
                     message={emptyMessage}
                 />
             ) : (
-                tasks.map((task) => (
+                sortTasksByPriority(tasks).map((task) => (
                     <TaskCard
                         key={task.id}
                         task={task}
@@ -306,7 +318,7 @@ export default function TasksScreen() {
                         message="Completed tasks will appear here after you finish them."
                     />
                 ) : (
-                    completedTasks.map((task) => (
+                    sortTasksByPriority(completedTasks).map((task) => (
                         <TaskCard
                             key={task.id}
                             task={task}

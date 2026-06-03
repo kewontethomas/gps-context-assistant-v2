@@ -9,6 +9,14 @@ export type TaskRecurrence =
   | "weekly"
   | "custom";
 
+export type ReminderProfile = "gentle" | "normal" | "persistent";
+
+export type TaskSource = "manual" | "fieldseed" | "routine";
+
+export type TaskPriority = "low" | "normal" | "high" | "urgent";
+
+export type TaskContextType = "personal" | "home" | "work" | "errand" | "site";
+
 export type LocationTask = {
   id: string;
   placeId: string;
@@ -39,6 +47,8 @@ export type LocationTask = {
   completedAt?: string;
 
   reminderProfile: ReminderProfile;
+  source: TaskSource;
+  priority: TaskPriority;
+  contextType: TaskContextType;
+  externalSourceId?: string;
 };
-
-export type ReminderProfile = "gentle" | "normal" | "persistent";

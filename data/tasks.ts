@@ -10,6 +10,9 @@ export const locationTasks: LocationTask[] = [
 
     status: "active",
     reminderProfile: "normal",
+    source: "manual",
+    priority: "high",
+    contextType: "work",
 
     dueDate: "Today",
     dueTime: undefined,
@@ -38,6 +41,9 @@ export const locationTasks: LocationTask[] = [
 
     status: "active",
     reminderProfile: "normal",
+    source: "manual",
+    priority: "normal",
+    contextType: "home",
 
     dueDate: "Today",
     dueTime: "Tonight",

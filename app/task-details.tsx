@@ -7,7 +7,13 @@ import { Card } from "@/components/Card";
 import { PageHeader } from "@/components/PageHeader";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { colors } from "@/constants/theme";
-import { LocationTask, ReminderProfile } from "@/types/task";
+import {
+    LocationTask,
+    ReminderProfile,
+    TaskContextType,
+    TaskPriority,
+    TaskSource,
+} from "@/types/task";
 import { getSavedTasks } from "@/storage/taskStorage";
 import {
     completeTask,
@@ -19,6 +25,17 @@ import {
   getReminderProfileDescription,
   getReminderProfileLabel,
 } from "@/utils/reminderProfiles";
+import {
+    getTaskContextDescription,
+    getTaskContextLabel,
+    getTaskPriorityDescription,
+    getTaskPriorityLabel,
+    getTaskSourceDescription,
+    getTaskSourceLabel,
+    taskContextTypes,
+    taskPriorities,
+    taskSources,
+} from "@/utils/taskMetadata";
 
 const reminderProfiles: ReminderProfile[] = [
     "gentle",
@@ -36,6 +53,10 @@ export default function TaskDetailsScreen() {
     const [dueTime, setDueTime] = useState("");
     const [reminderProfile, setReminderProfile] =
         useState<ReminderProfile>("normal");
+    const [taskSource, setTaskSource] = useState<TaskSource>("manual");
+    const [taskPriority, setTaskPriority] = useState<TaskPriority>("normal");
+    const [taskContextType, setTaskContextType] =
+        useState<TaskContextType>("personal");
 
     useFocusEffect(
         useCallback(() => {
@@ -57,6 +78,9 @@ export default function TaskDetailsScreen() {
                 setDueDate(foundTask.dueDate ?? "");
                 setDueTime(foundTask.dueTime ?? "");
                 setReminderProfile(foundTask.reminderProfile ?? "normal");
+                setTaskSource(foundTask.source ?? "manual");
+                setTaskPriority(foundTask.priority ?? "normal");
+                setTaskContextType(foundTask.contextType ?? "personal");
             }
 
             loadTask();
@@ -79,6 +103,9 @@ export default function TaskDetailsScreen() {
             dueDate: dueDate.trim() || undefined,
             dueTime: dueTime.trim() || undefined,
             reminderProfile,
+            source: taskSource,
+            priority: taskPriority,
+            contextType: taskContextType,
         });
 
         router.back();
@@ -159,6 +186,117 @@ export default function TaskDetailsScreen() {
                     onChangeText={setDueTime}
                 />
             </Card>
+
+
+            <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Task intelligence</Text>
+
+                <Text style={styles.fieldLabel}>Priority</Text>
+
+                {taskPriorities.map((priority) => {
+                    const selected = taskPriority === priority;
+
+                    return (
+                        <Pressable
+                            key={priority}
+                            onPress={() => setTaskPriority(priority)}
+                            style={[
+                                styles.metadataCard,
+                                selected && styles.metadataCardSelected,
+                            ]}
+                        >
+                            <Text
+                                style={[
+                                    styles.metadataTitle,
+                                    selected && styles.metadataTitleSelected,
+                                ]}
+                            >
+                                {getTaskPriorityLabel(priority)}
+                            </Text>
+
+                            <Text
+                                style={[
+                                    styles.metadataDescription,
+                                    selected && styles.metadataDescriptionSelected,
+                                ]}
+                            >
+                                {getTaskPriorityDescription(priority)}
+                            </Text>
+                        </Pressable>
+                    );
+                })}
+
+                <Text style={[styles.fieldLabel, styles.fieldLabelSpacing]}>
+                    Context
+                </Text>
+
+                <View style={styles.optionGrid}>
+                    {taskContextTypes.map((contextType) => {
+                        const selected = taskContextType === contextType;
+
+                        return (
+                            <Pressable
+                                key={contextType}
+                                onPress={() => setTaskContextType(contextType)}
+                                style={[
+                                    styles.optionPill,
+                                    selected && styles.optionPillSelected,
+                                ]}
+                            >
+                                <Text
+                                    style={[
+                                        styles.optionText,
+                                        selected && styles.optionTextSelected,
+                                    ]}
+                                >
+                                    {getTaskContextLabel(contextType)}
+                                </Text>
+                            </Pressable>
+                        );
+                    })}
+                </View>
+
+                <Text style={styles.helperText}>
+                    {getTaskContextDescription(taskContextType)}
+                </Text>
+
+                <Text style={[styles.fieldLabel, styles.fieldLabelSpacing]}>
+                    Source
+                </Text>
+
+                {taskSources.map((source) => {
+                    const selected = taskSource === source;
+
+                    return (
+                        <Pressable
+                            key={source}
+                            onPress={() => setTaskSource(source)}
+                            style={[
+                                styles.metadataCard,
+                                selected && styles.metadataCardSelected,
+                            ]}
+                        >
+                            <Text
+                                style={[
+                                    styles.metadataTitle,
+                                    selected && styles.metadataTitleSelected,
+                                ]}
+                            >
+                                {getTaskSourceLabel(source)}
+                            </Text>
+
+                            <Text
+                                style={[
+                                    styles.metadataDescription,
+                                    selected && styles.metadataDescriptionSelected,
+                                ]}
+                            >
+                                {getTaskSourceDescription(source)}
+                            </Text>
+                        </Pressable>
+                    );
+                })}
+            </View>
 
             <View style={styles.section}>
                 <Text style={styles.sectionTitle}>Reminder intensity</Text>
@@ -252,6 +390,85 @@ const styles = StyleSheet.create({
         gap: 14,
         paddingBottom: 90,
     },
+
+    fieldLabelSpacing: {
+        marginTop: 22,
+    },
+
+    optionGrid: {
+        flexDirection: "row",
+        flexWrap: "wrap",
+        justifyContent: "space-between",
+        rowGap: 14,
+    },
+
+    optionPill: {
+        width: "48%",
+        minHeight: 54,
+        backgroundColor: "#FFFFFF",
+        borderRadius: 999,
+        alignItems: "center",
+        justifyContent: "center",
+        paddingHorizontal: 8,
+    },
+
+    optionPillSelected: {
+        backgroundColor: colors.primary,
+    },
+
+    optionText: {
+        color: colors.softText,
+        fontSize: 14,
+        fontWeight: "900",
+        textAlign: "center",
+    },
+
+    optionTextSelected: {
+        color: "#FFFFFF",
+    },
+
+    metadataCard: {
+        backgroundColor: "#FFFFFF",
+        borderRadius: 24,
+        padding: 18,
+        borderColor: colors.border,
+        borderWidth: 1,
+        marginBottom: 12,
+    },
+
+    metadataCardSelected: {
+        borderColor: colors.primary,
+        backgroundColor: "#EFF6FF",
+    },
+
+    metadataTitle: {
+        color: colors.text,
+        fontSize: 16,
+        fontWeight: "900",
+        marginBottom: 4,
+    },
+
+    metadataTitleSelected: {
+        color: colors.primary,
+    },
+
+    metadataDescription: {
+        color: colors.softText,
+        fontSize: 13,
+        lineHeight: 19,
+    },
+
+    metadataDescriptionSelected: {
+        color: "#475569",
+    },
+
+    helperText: {
+        color: colors.softText,
+        fontSize: 13,
+        lineHeight: 19,
+        marginTop: 10,
+    },
+
 
     section: {
     marginBottom: 30,

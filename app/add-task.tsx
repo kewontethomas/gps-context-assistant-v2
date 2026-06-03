@@ -16,11 +16,29 @@ import { colors, typography } from "@/constants/theme";
 import { getSavedPlaces } from "@/storage/placeStorage";
 import { addSavedTask } from "@/storage/taskStorage";
 import { SavedPlace } from "@/types/place";
-import { LocationTask, ReminderProfile, TaskRecurrence } from "@/types/task";
+import {
+    LocationTask,
+    ReminderProfile,
+    TaskContextType,
+    TaskPriority,
+    TaskRecurrence,
+    TaskSource,
+} from "@/types/task";
 import {
     getReminderProfileDescription,
     getReminderProfileLabel,
 } from "@/utils/reminderProfiles";
+import {
+    getTaskContextDescription,
+    getTaskContextLabel,
+    getTaskPriorityDescription,
+    getTaskPriorityLabel,
+    getTaskSourceDescription,
+    getTaskSourceLabel,
+    taskContextTypes,
+    taskPriorities,
+    taskSources,
+} from "@/utils/taskMetadata";
 
 const recurrenceOptions: TaskRecurrence[] = [
     "none",
@@ -90,6 +108,10 @@ export default function AddTaskScreen() {
     const [dueDate, setDueDate] = useState("Today");
     const [dueTime, setDueTime] = useState("No time");
     const [recurrence, setRecurrence] = useState<TaskRecurrence>("none");
+    const [taskSource, setTaskSource] = useState<TaskSource>("manual");
+    const [taskPriority, setTaskPriority] = useState<TaskPriority>("normal");
+    const [taskContextType, setTaskContextType] =
+        useState<TaskContextType>("personal");
 
     const [arrivalReminder, setArrivalReminder] = useState(true);
     const [departureReminder, setDepartureReminder] = useState(true);
@@ -174,6 +196,9 @@ export default function AddTaskScreen() {
             createdAt: new Date().toISOString(),
 
             reminderProfile,
+            source: taskSource,
+            priority: taskPriority,
+            contextType: taskContextType,
         };
 
         await addSavedTask(newTask);
@@ -254,6 +279,117 @@ export default function AddTaskScreen() {
                         );
                     })}
                 </View>
+            </View>
+
+
+            <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Task intelligence</Text>
+
+                <Text style={styles.fieldLabel}>Priority</Text>
+
+                {taskPriorities.map((priority) => {
+                    const selected = taskPriority === priority;
+
+                    return (
+                        <Pressable
+                            key={priority}
+                            onPress={() => setTaskPriority(priority)}
+                            style={[
+                                styles.metadataCard,
+                                selected && styles.metadataCardSelected,
+                            ]}
+                        >
+                            <Text
+                                style={[
+                                    styles.metadataTitle,
+                                    selected && styles.metadataTitleSelected,
+                                ]}
+                            >
+                                {getTaskPriorityLabel(priority)}
+                            </Text>
+
+                            <Text
+                                style={[
+                                    styles.metadataDescription,
+                                    selected && styles.metadataDescriptionSelected,
+                                ]}
+                            >
+                                {getTaskPriorityDescription(priority)}
+                            </Text>
+                        </Pressable>
+                    );
+                })}
+
+                <Text style={[styles.fieldLabel, styles.fieldLabelSpacing]}>
+                    Context
+                </Text>
+
+                <View style={styles.optionGrid}>
+                    {taskContextTypes.map((contextType) => {
+                        const selected = taskContextType === contextType;
+
+                        return (
+                            <Pressable
+                                key={contextType}
+                                onPress={() => setTaskContextType(contextType)}
+                                style={[
+                                    styles.optionPill,
+                                    selected && styles.optionPillSelected,
+                                ]}
+                            >
+                                <Text
+                                    style={[
+                                        styles.optionText,
+                                        selected && styles.optionTextSelected,
+                                    ]}
+                                >
+                                    {getTaskContextLabel(contextType)}
+                                </Text>
+                            </Pressable>
+                        );
+                    })}
+                </View>
+
+                <Text style={styles.helperText}>
+                    {getTaskContextDescription(taskContextType)}
+                </Text>
+
+                <Text style={[styles.fieldLabel, styles.fieldLabelSpacing]}>
+                    Source
+                </Text>
+
+                {taskSources.map((source) => {
+                    const selected = taskSource === source;
+
+                    return (
+                        <Pressable
+                            key={source}
+                            onPress={() => setTaskSource(source)}
+                            style={[
+                                styles.metadataCard,
+                                selected && styles.metadataCardSelected,
+                            ]}
+                        >
+                            <Text
+                                style={[
+                                    styles.metadataTitle,
+                                    selected && styles.metadataTitleSelected,
+                                ]}
+                            >
+                                {getTaskSourceLabel(source)}
+                            </Text>
+
+                            <Text
+                                style={[
+                                    styles.metadataDescription,
+                                    selected && styles.metadataDescriptionSelected,
+                                ]}
+                            >
+                                {getTaskSourceDescription(source)}
+                            </Text>
+                        </Pressable>
+                    );
+                })}
             </View>
 
             <Card style={styles.formCard}>
@@ -621,6 +757,49 @@ const styles = StyleSheet.create({
         gap: 14,
         paddingBottom: 90,
     },
+
+    metadataCard: {
+        backgroundColor: "#FFFFFF",
+        borderRadius: 24,
+        padding: 18,
+        borderColor: colors.border,
+        borderWidth: 1,
+        marginBottom: 12,
+    },
+
+    metadataCardSelected: {
+        borderColor: colors.primary,
+        backgroundColor: "#EFF6FF",
+    },
+
+    metadataTitle: {
+        color: colors.text,
+        fontSize: 16,
+        fontWeight: "900",
+        marginBottom: 4,
+    },
+
+    metadataTitleSelected: {
+        color: colors.primary,
+    },
+
+    metadataDescription: {
+        color: colors.softText,
+        fontSize: 13,
+        lineHeight: 19,
+    },
+
+    metadataDescriptionSelected: {
+        color: "#475569",
+    },
+
+    helperText: {
+        color: colors.softText,
+        fontSize: 13,
+        lineHeight: 19,
+        marginTop: 10,
+    },
+
 
     reminderProfileCard: {
         backgroundColor: "#FFFFFF",

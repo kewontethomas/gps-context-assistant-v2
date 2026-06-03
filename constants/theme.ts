@@ -74,3 +74,21 @@ export const typography = {
     lineHeight: 19,
   },
 };
+export const Colors = {
+  light: {
+    text: colors.text,
+    background: colors.background,
+    tint: colors.primary,
+    icon: colors.softText,
+    tabIconDefault: colors.softText,
+    tabIconSelected: colors.primary,
+  },
+  dark: {
+    text: colors.text,
+    background: colors.background,
+    tint: colors.primary,
+    icon: colors.softText,
+    tabIconDefault: colors.softText,
+    tabIconSelected: colors.primary,
+  },
+};
