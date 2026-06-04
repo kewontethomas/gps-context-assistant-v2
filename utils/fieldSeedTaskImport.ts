@@ -1,3 +1,6 @@
+import * as Location from "expo-location";
+
+import { addSavedPlace } from "@/storage/placeStorage";
 import { addSavedTask } from "@/storage/taskStorage";
 import { SavedPlace } from "@/types/place";
 import {
@@ -6,12 +9,17 @@ import {
   TaskContextType,
   TaskPriority,
 } from "@/types/task";
+import { registerSavedPlaceGeofences } from "@/utils/backgroundGeofencing";
 
 export type FieldSeedTaskPayload = {
   externalSourceId?: string;
   title: string;
   notes?: string;
   placeName: string;
+  address?: string;
+  latitude?: number;
+  longitude?: number;
+  radiusMeters?: number;
   priority?: TaskPriority;
   contextType?: TaskContextType;
   reminderProfile?: ReminderProfile;
@@ -25,22 +33,103 @@ export function resolvePlaceForFieldSeedTask(
 ) {
   return places.find(
     (place) =>
+      !place.archivedAt &&
       place.name.trim().toLowerCase() === payload.placeName.trim().toLowerCase()
   );
 }
 
+async function geocodeAddress(address?: string) {
+  if (!address?.trim()) {
+    return {};
+  }
+
+  try {
+    const results = await Location.geocodeAsync(address.trim());
+
+    if (results.length === 0) {
+      return {};
+    }
+
+    return {
+      latitude: results[0].latitude,
+      longitude: results[0].longitude,
+    };
+  } catch (error) {
+    console.log("FieldSeed geocoding failed:", error);
+    return {};
+  }
+}
+
+async function createTemporaryPlaceForFieldSeedTask(payload: FieldSeedTaskPayload) {
+  const geocodedCoordinates =
+    typeof payload.latitude === "number" && typeof payload.longitude === "number"
+      ? {
+          latitude: payload.latitude,
+          longitude: payload.longitude,
+        }
+      : await geocodeAddress(payload.address);
+
+  const temporaryPlace: SavedPlace = {
+    id: `fieldseed-place-${Date.now()}`,
+    name: payload.placeName.trim() || "FieldSeed Temporary Site",
+    description: "Temporary place created from a FieldSeed work task.",
+    address: payload.address?.trim() || payload.placeName.trim(),
+    latitude: geocodedCoordinates.latitude,
+    longitude: geocodedCoordinates.longitude,
+    radiusMeters: payload.radiusMeters ?? 250,
+    type: "temporary",
+    category: payload.contextType === "work" ? "work" : "custom",
+    icon: "🛠️",
+    defaultTravelMode: "driving",
+    createdAt: new Date().toISOString(),
+  };
+
+  await addSavedPlace(temporaryPlace);
+
+  if (
+    typeof temporaryPlace.latitude === "number" &&
+    typeof temporaryPlace.longitude === "number"
+  ) {
+    await registerSavedPlaceGeofences().catch((error) => {
+      console.log("Could not register FieldSeed temporary place geofence:", error);
+    });
+  }
+
+  return temporaryPlace;
+}
+
+export type FieldSeedTaskImportResult =
+  | {
+      imported: true;
+      task: LocationTask;
+      place: SavedPlace;
+      createdTemporaryPlace: boolean;
+    }
+  | {
+      imported: false;
+      reason: string;
+    };
+
 export async function importFieldSeedTask(
   places: SavedPlace[],
   payload: FieldSeedTaskPayload
-) {
-  const place = resolvePlaceForFieldSeedTask(places, payload);
-
-  if (!place) {
+): Promise<FieldSeedTaskImportResult> {
+  if (!payload.title.trim()) {
     return {
       imported: false,
-      reason: "No matching place found for FieldSeed task.",
+      reason: "FieldSeed task is missing a title.",
     };
   }
+
+  if (!payload.placeName.trim()) {
+    return {
+      imported: false,
+      reason: "FieldSeed task is missing a place name.",
+    };
+  }
+
+  const existingPlace = resolvePlaceForFieldSeedTask(places, payload);
+  const place = existingPlace ?? (await createTemporaryPlaceForFieldSeedTask(payload));
 
   const reminderProfile = payload.reminderProfile ?? "persistent";
 
@@ -80,5 +169,7 @@ export async function importFieldSeedTask(
   return {
     imported: true,
     task,
+    place,
+    createdTemporaryPlace: !existingPlace,
   };
 }

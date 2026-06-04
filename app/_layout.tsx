@@ -2,11 +2,8 @@ import { useEffect } from "react";
 import { Stack } from "expo-router";
 
 import { registerSavedPlaceGeofences } from "@/utils/backgroundGeofencing";
-import { useFieldSeedDeepLinkImport } from "@/utils/fieldSeedDeepLinkBridge";
 
 export default function RootLayout() {
-  useFieldSeedDeepLinkImport();
-
   useEffect(() => {
     registerSavedPlaceGeofences().catch((error) => {
       console.log("Could not register background geofences:", error);

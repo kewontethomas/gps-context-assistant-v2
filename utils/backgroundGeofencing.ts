@@ -5,10 +5,6 @@ import { getSavedPlaces } from "@/storage/placeStorage";
 import { getSavedTasks } from "@/storage/taskStorage";
 import { SavedPlace } from "@/types/place";
 import { LocationTask } from "@/types/task";
-import {
-  canNotifyForPlace,
-  markPlaceNotified,
-} from "@/utils/notificationCooldowns";
 import { sendPlaceEventNotification } from "@/utils/notifications";
 import { updatePlacePresence } from "@/utils/placePresence";
 
@@ -64,25 +60,13 @@ async function handleBackgroundGeofenceEvent(
     return;
   }
 
-  const presenceChange = await updatePlacePresence(place.id, isArrival);
-
-  if (presenceChange.eventType === "none") {
-    return;
-  }
-
-  const canNotify = await canNotifyForPlace(place.id);
-
-  if (!canNotify) {
-    return;
-  }
+  await updatePlacePresence(place.id, isArrival);
 
   await sendPlaceEventNotification(
     place.name,
-    presenceChange.eventType,
+    isArrival ? "arrival" : "departure",
     activeTasks.length
   );
-
-  await markPlaceNotified(place.id);
 }
 
 if (!TaskManager.isTaskDefined(BACKGROUND_GEOFENCING_TASK)) {
@@ -132,21 +116,21 @@ export async function registerSavedPlaceGeofences(): Promise<GeofenceSyncResult>
   }
 
   const places = await getSavedPlaces();
-  const readyPlaces = getGeofenceReadyPlaces(places);
+  const geofenceReadyPlaces = getGeofenceReadyPlaces(places);
 
-  if (readyPlaces.length === 0) {
-    await Location.stopGeofencingAsync(BACKGROUND_GEOFENCING_TASK).catch(
-      () => {}
-    );
+  if (geofenceReadyPlaces.length === 0) {
+    await Location.stopGeofencingAsync(BACKGROUND_GEOFENCING_TASK).catch(() => {
+      // Ignore if no task is currently registered.
+    });
 
     return {
-      enabled: false,
+      enabled: true,
       registeredRegions: 0,
       message: "No saved places have coordinates yet.",
     };
   }
 
-  const regions = readyPlaces.map((place) => ({
+  const regions: Location.LocationRegion[] = geofenceReadyPlaces.map((place) => ({
     identifier: place.id,
     latitude: place.latitude as number,
     longitude: place.longitude as number,
@@ -155,14 +139,6 @@ export async function registerSavedPlaceGeofences(): Promise<GeofenceSyncResult>
     notifyOnExit: true,
   }));
 
-  const isRegistered = await TaskManager.isTaskRegisteredAsync(
-    BACKGROUND_GEOFENCING_TASK
-  );
-
-  if (isRegistered) {
-    await Location.stopGeofencingAsync(BACKGROUND_GEOFENCING_TASK);
-  }
-
   await Location.startGeofencingAsync(BACKGROUND_GEOFENCING_TASK, regions);
 
   return {
@@ -170,45 +146,22 @@ export async function registerSavedPlaceGeofences(): Promise<GeofenceSyncResult>
     registeredRegions: regions.length,
     message: `Monitoring ${regions.length} saved place${
       regions.length === 1 ? "" : "s"
-    }.`,
+    } in the background.`,
   };
 }
 
 export async function stopSavedPlaceGeofences(): Promise<GeofenceSyncResult> {
-  const isRegistered = await TaskManager.isTaskRegisteredAsync(
-    BACKGROUND_GEOFENCING_TASK
-  );
-
-  if (isRegistered) {
-    await Location.stopGeofencingAsync(BACKGROUND_GEOFENCING_TASK);
-  }
+  await Location.stopGeofencingAsync(BACKGROUND_GEOFENCING_TASK).catch(() => {
+    // Ignore if no task is currently registered.
+  });
 
   return {
     enabled: false,
     registeredRegions: 0,
-    message: "Background place monitoring stopped.",
-  };
-}
-
-export async function getBackgroundGeofenceStatus(): Promise<GeofenceSyncResult> {
-  const isRegistered = await TaskManager.isTaskRegisteredAsync(
-    BACKGROUND_GEOFENCING_TASK
-  );
-
-  const places = await getSavedPlaces();
-  const readyPlaces = getGeofenceReadyPlaces(places);
-
-  return {
-    enabled: isRegistered,
-    registeredRegions: isRegistered ? readyPlaces.length : 0,
-    message: isRegistered
-      ? `Background monitoring is active for ${readyPlaces.length} place${
-          readyPlaces.length === 1 ? "" : "s"
-        }.`
-      : "Background monitoring is not active.",
+    message: "Background geofencing stopped.",
   };
 }
 
 export async function isBackgroundGeofencingRegistered() {
-  return TaskManager.isTaskRegisteredAsync(BACKGROUND_GEOFENCING_TASK);
+  return Location.hasStartedGeofencingAsync(BACKGROUND_GEOFENCING_TASK);
 }

@@ -16,6 +16,10 @@ export type FieldSeedInboxItem = {
   title: string;
   notes?: string;
   placeName: string;
+  address?: string;
+  latitude?: number;
+  longitude?: number;
+  radiusMeters?: number;
   priority: TaskPriority;
   contextType: TaskContextType;
   reminderProfile: ReminderProfile;
@@ -32,6 +36,10 @@ export type CreateFieldSeedInboxItemInput = {
   title: string;
   notes?: string;
   placeName: string;
+  address?: string;
+  latitude?: number;
+  longitude?: number;
+  radiusMeters?: number;
   priority?: TaskPriority;
   contextType?: TaskContextType;
   reminderProfile?: ReminderProfile;
@@ -66,6 +74,10 @@ export async function addFieldSeedInboxItem(
     title: input.title.trim(),
     notes: input.notes?.trim() || undefined,
     placeName: input.placeName.trim(),
+    address: input.address?.trim() || undefined,
+    latitude: input.latitude,
+    longitude: input.longitude,
+    radiusMeters: input.radiusMeters,
     priority: input.priority ?? "high",
     contextType: input.contextType ?? "work",
     reminderProfile: input.reminderProfile ?? "persistent",
