@@ -2,12 +2,19 @@ import { useEffect } from "react";
 import { Stack } from "expo-router";
 
 import { registerSavedPlaceGeofences } from "@/utils/backgroundGeofencing";
+import { startFieldSeedAutoSync } from "@/services/fieldSeedAutoSync";
 
 export default function RootLayout() {
   useEffect(() => {
     registerSavedPlaceGeofences().catch((error) => {
       console.log("Could not register background geofences:", error);
     });
+
+    const stopFieldSeedAutoSync = startFieldSeedAutoSync();
+
+    return () => {
+      stopFieldSeedAutoSync();
+    };
   }, []);
 
   return (

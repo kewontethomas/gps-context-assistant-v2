@@ -116,3 +116,20 @@ export async function sendStillAtPlaceNotification(
     trigger: null,
   });
 }
+
+export async function sendFieldSeedCloudTaskNotification(taskCount: number) {
+  const hasPermission = await requestNotificationPermission();
+
+  if (!hasPermission) {
+    return;
+  }
+
+  await Notifications.scheduleNotificationAsync({
+    content: {
+      title: "New FieldSeed task received",
+      body: `${taskCount} work task${taskCount === 1 ? "" : "s"} waiting in your FieldSeed Inbox.`,
+      sound: true,
+    },
+    trigger: null,
+  });
+}
